@@ -1,26 +1,12 @@
 const mongoose = require("mongoose");
 
-// Define schema
-const authSchema = new mongoose.Schema({
-    userName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,   
-        lowercase: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6   
-    }
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  googleId: { type: String, unique: true, sparse: true },
+  password: { type: String }, 
+  profileImage: { type: String },
 }, { timestamps: true });
 
-
-const UserModel = mongoose.model("User", authSchema);
-
-module.exports = UserModel;
+const User = mongoose.model("User", userSchema);
+module.exports = User;

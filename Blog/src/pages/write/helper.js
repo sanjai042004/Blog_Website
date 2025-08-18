@@ -1,5 +1,4 @@
-export const newBlock = (type = "text") => ({
-  type,
+export const newBlock = () => ({
   content: "",
   image: null,
   preview: null,

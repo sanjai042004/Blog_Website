@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export const MainNav = () => {
   return (
     <header className="w-full  border-b">
-      <nav className="flex items-center justify-around  py-10">
+      <nav className="p-10 flex items-center justify-around ">
         {/* Logo */}
         <div>
           <Link

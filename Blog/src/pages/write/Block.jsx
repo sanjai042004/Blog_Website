@@ -3,13 +3,18 @@ import { BlockOptions } from "./BlockOptions";
 import { UnsplashSearch } from "./UnsplashSearch";
 import { VideoInput } from "./VideoInput";
 
-export const Block = ({index,block,blocks,handleChange,removeBlock,addBlock,contentRefs,
-  imageInputRefs,}) => {
-
-
+export const Block = ({
+  index,
+  block,
+  blocks,
+  handleChange,
+  removeBlock,
+  addBlock,
+  contentRefs,
+  imageInputRefs,
+}) => {
   const handleContentKey = (e) => {
-
-    //Enter 
+    //Enter
 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -22,7 +27,7 @@ export const Block = ({index,block,blocks,handleChange,removeBlock,addBlock,cont
       }
     }
 
-    //BackSpace 
+    //BackSpace
 
     if (e.key === "Backspace") {
       if (block.content?.length > 0) return;
@@ -39,7 +44,12 @@ export const Block = ({index,block,blocks,handleChange,removeBlock,addBlock,cont
         return;
       }
 
-      if (!block.content && !block.preview && !block.youtubeEmbed && blocks.length > 1) {
+      if (
+        !block.content &&
+        !block.preview &&
+        !block.youtubeEmbed &&
+        blocks.length > 1
+      ) {
         e.preventDefault();
         removeBlock(index);
         setTimeout(() => {
@@ -54,14 +64,19 @@ export const Block = ({index,block,blocks,handleChange,removeBlock,addBlock,cont
     handleChange(index, field, value);
 
     const b = { ...blocks[index], [field]: value };
-    if (!b.content && !b.preview && !b.youtubeEmbed && blocks.length > 1 && index !== blocks.length - 1) {
+    if (
+      !b.content &&
+      !b.preview &&
+      !b.youtubeEmbed &&
+      blocks.length > 1 &&
+      index !== blocks.length - 1
+    ) {
       removeBlock(index);
     }
   };
 
   return (
-    <div className="flex items-start gap-3 mt-6">
-      
+    <div className="flex items-start gap-3 mt-10">
       <div>
         <BlockOptions
           block={block}
@@ -71,10 +86,13 @@ export const Block = ({index,block,blocks,handleChange,removeBlock,addBlock,cont
         />
       </div>
 
-    
       <div className="flex-1">
         {block.showUnsplashInput && (
-          <UnsplashSearch block={block} index={index} handleChange={handleChange} />
+          <UnsplashSearch
+            block={block}
+            index={index}
+            handleChange={handleChange}
+          />
         )}
 
         {block.preview && (

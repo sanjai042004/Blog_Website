@@ -3,7 +3,7 @@ import softwares from "../assets/softwares.png";
 
 export const MainPage = () => {
   return (
-    <div className="flex justify-around items-center mt-30">
+    <div className="flex justify-around items-center mt-20">
     <section className="w-full flex flex-col items-center  px-6">
 
       {/* Main Title */}

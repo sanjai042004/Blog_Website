@@ -68,10 +68,9 @@ export const Home = () => {
                 <div
                   key={post._id}
                   type="button"
-                  onClick={() => navigate(`/post/${post._id}`)}
-                  onKeyDown={(e) => {navigate(`/post/${post._id}`)}}
-                  className="cursor-pointer outline-none rounded"
-                >
+                  onClick={() => navigate(`/home/post/${post._id}`)}
+                  className="cursor-pointer outline-none rounded">
+                    
                   <div className="flex flex-col sm:flex-row gap-8 p-6">
                     <div className="flex-shrink-0 w-full sm:w-72 h-44 overflow-hidden rounded-lg">
                       <img
@@ -110,11 +109,6 @@ export const Home = () => {
                             navigate(`/author/${post.authorId || post.author}`);
                           }}
                           className="font-medium text-blue-600 hover:underline cursor-pointer"
-                          onKeyDown={(e) => { e.stopPropagation();
-                              navigate(
-                                `/author/${post.authorId || post.author}`
-                              );
-                          }}
                         >
                           By {post.author}
                         </span>{" "}

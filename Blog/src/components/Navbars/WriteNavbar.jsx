@@ -8,7 +8,7 @@ export const WriteNavbar = ({ onPost, isPublishing = false }) => {
       
       <div className="flex items-center gap-6">
         <Link
-          to="/"
+          to="/home"
           className="text-3xl font-extrabold text-black hover:text-blue-900"
         >
           CodeVerse
@@ -16,7 +16,8 @@ export const WriteNavbar = ({ onPost, isPublishing = false }) => {
         <h3 className="text-gray-600">Draft in user</h3>
       </div>
 
-    
+
+
       <div className="flex items-center gap-4">
         <button
           type="button"
@@ -31,7 +32,7 @@ export const WriteNavbar = ({ onPost, isPublishing = false }) => {
           {isPublishing ? "Publishing..." : "Publish"}
         </button>
 
-        <Link to="/profile">
+        <Link to="/notify">
           <IoNotificationsOutline className="size-6" />
         </Link>
         <ProfileDropdown />

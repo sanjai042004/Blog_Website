@@ -41,16 +41,16 @@ export const Write = () => {
       formData.append("title", postTitle);
 
       blocks.forEach((block, i) => {
-        formData.append(`blocks[${i}][content]`, block.content || "");
-        formData.append(`blocks[${i}][youtubeEmbed]`, block.youtubeEmbed || "");
+        formData.append(`blocks[${i}] [content]`, block.content || "");
+        formData.append(`blocks[${i}] [youtubeEmbed]`, block.youtubeEmbed || "");
         if (block.image instanceof File) {
-          formData.append(`blocks[${i}][image]`, block.image);
+          formData.append(`blocks[${i}] [image]`, block.image);
         } else if (typeof block.image === "string") {
-          formData.append(`blocks[${i}][imageUrl]`, block.image);
+          formData.append(`blocks[${i}] [imageUrl]`, block.image);
         }
       });
 
-      const res = await axios.post("/api/posts", formData);
+      const res = await axios.post("/api/post/create", formData);
       console.log("Post created:", res.data);
       alert("Post submitted successfully!");
     } catch (error) {

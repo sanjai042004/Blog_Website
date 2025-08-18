@@ -1,7 +1,7 @@
-const express=require("express")
-const router=express.Router()
+const express = require("express");
+const router = express.Router();
+const { googleLogin } = require("../controllers/auth.controller");
 
-router.use("/auth",require("./auth.route"))
-router.use("/post",require("./post.route"))
+router.post("/google", googleLogin);
 
-module.exports=router
+module.exports = router;

@@ -1,10 +1,18 @@
-import { IoAddCircleOutline, IoCloseCircleOutline, IoImageOutline } from "react-icons/io5";
+import {
+  IoAddCircleOutline,
+  IoCloseCircleOutline,
+  IoImageOutline,
+} from "react-icons/io5";
 import { LuFileVideo } from "react-icons/lu";
 import { TbBrandUnsplash } from "react-icons/tb";
 import { prepareImage } from "./helper";
 
-export const BlockOptions = ({ block, index, handleChange, imageInputRefs }) => {
-
+export const BlockOptions = ({
+  block,
+  index,
+  handleChange,
+  imageInputRefs,
+}) => {
   const hideIcons = !!block.content;
 
   const handleFileChange = (file) => {
@@ -15,12 +23,16 @@ export const BlockOptions = ({ block, index, handleChange, imageInputRefs }) => 
     handleChange(index, "showImageOptions", updated.showImageOptions);
   };
 
-  if (hideIcons) return null; 
+  if (hideIcons) return null;
 
   return (
     <div className="flex gap-3 mb-15 items-center">
       {/* Toggle Add/Close */}
-      <button onClick={() => handleChange(index, "showImageOptions", !block.showImageOptions)}>
+      <button
+        onClick={() =>
+          handleChange(index, "showImageOptions", !block.showImageOptions)
+        }
+      >
         {block.showImageOptions ? (
           <IoCloseCircleOutline className="size-10 cursor-pointer text-gray-500" />
         ) : (
@@ -48,7 +60,11 @@ export const BlockOptions = ({ block, index, handleChange, imageInputRefs }) => 
           </button>
 
           {/* Unsplash */}
-          <button onClick={() => handleChange(index, "showUnsplashInput", !block.showUnsplashInput)}>
+          <button
+            onClick={() =>
+              handleChange(index, "showUnsplashInput", !block.showUnsplashInput)
+            }
+          >
             <TbBrandUnsplash className="size-7 cursor-pointer text-gray-500 hover:text-gray-700" />
           </button>
         </>
