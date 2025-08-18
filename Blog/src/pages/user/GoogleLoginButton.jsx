@@ -12,10 +12,10 @@ export const GoogleLoginButton = () => {
       });
 
       console.log("Backend Response:", res.data);
-      
+
       localStorage.setItem("token", res.data.token);
 
-      // alert(`Welcome ${res.data.user.name}`);
+      alert(`Welcome ${res.data.user.name}`);
       navigate("/home");
     } catch (err) {
       console.error("Google Login Error:", err);
@@ -24,7 +24,7 @@ export const GoogleLoginButton = () => {
   };
 
   return (
-    <GoogleLogin
+    <GoogleLogin 
       onSuccess={handleSuccess}
       onError={() => {
         console.log("Google Login Failed");

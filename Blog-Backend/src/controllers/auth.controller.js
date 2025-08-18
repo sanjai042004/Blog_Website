@@ -4,7 +4,8 @@ const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-exports.googleLogin = async (req, res) => {
+
+const googleLogin = async (req, res) => {
   try {
     const ticket = await client.verifyIdToken({
       idToken: req.body.token,
@@ -16,6 +17,7 @@ exports.googleLogin = async (req, res) => {
 
     
     let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
 
     if (!user) {
 
@@ -45,3 +47,9 @@ exports.googleLogin = async (req, res) => {
     res.status(400).json({ message: "Google login failed" });
   }
 };
+
+
+
+module.exports={
+  googleLogin,
+}

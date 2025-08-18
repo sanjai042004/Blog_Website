@@ -41,14 +41,12 @@ const connectToMongoDB = async () => {
 // });
 
 
-// Routes
 app.use("/api/",routes);
 
 app.get("/", (_, res) => {
   res.send("Welcome to Blog Backend");
 });
 
-// Start Server
 connectToMongoDB().then(() => {
   app.listen(PORT, () =>
     console.log(`🚀 Server running at http://localhost:${PORT}`)

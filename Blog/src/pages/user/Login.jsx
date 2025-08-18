@@ -1,24 +1,44 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Email:", email, "Password:", password);
-    // TODO: send to backend
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/login", {
+        email,
+        password,
+      });
+
+      // Save token and redirect
+      localStorage.setItem("token", res.data.token);
+      navigate("/home");
+    } catch (err) {
+      setError(err.response?.data?.message || "Server error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-96">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-[500px]">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+        <form onSubmit={handleLogin} className="space-y-7">
           <input
             type="email"
             placeholder="📧 Email"
@@ -36,7 +56,6 @@ export const Login = () => {
             required
           />
 
-          {/* Forgot Password link */}
           <div className="text-right">
             <Link
               to="/forgot-password"
@@ -48,23 +67,23 @@ export const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
+            className={`w-full py-2 rounded-md text-white ${
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"
+            }`}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        
         <div className="my-4 flex items-center">
           <hr className="flex-grow border-gray-300" />
           <span className="px-2 text-gray-500 text-sm">or</span>
           <hr className="flex-grow border-gray-300" />
         </div>
 
-    
         <GoogleLoginButton />
 
-     
         <p className="text-center text-sm mt-4">
           Don't have an account?{" "}
           <Link to="/register" className="text-blue-600 hover:underline">
