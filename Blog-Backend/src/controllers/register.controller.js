@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 
+
+//register user
 const register = async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -42,6 +44,7 @@ const register = async (req, res) => {
   }
 };
 
+//Login user
 
 const login = async (req, res) => {
   try {
@@ -79,7 +82,8 @@ const login = async (req, res) => {
   }
 };
 
-// Logout
+// Logout user
+
 const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,

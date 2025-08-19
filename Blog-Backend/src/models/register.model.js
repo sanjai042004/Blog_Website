@@ -6,6 +6,6 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String },
 }, { timestamps: true });
 
-const RegisterModel = mongoose.model("UserReg", userSchema);
+const RegisterModel = mongoose.model("User", userSchema);
 
 module.exports = RegisterModel;
