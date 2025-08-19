@@ -4,7 +4,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 export const Profile = () => {
  const { user, setUser } = useOutletContext();
   const [profile, setProfile] = useState(user); 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
 
   const handleChange = (e) => {
@@ -22,7 +22,7 @@ export const Profile = () => {
   const handleSave = (e) => {
     e.preventDefault();
     setUser(profile);
-    navigate("/profile");
+    navigate("/profileView");
   };
 
   return (
@@ -61,9 +61,7 @@ export const Profile = () => {
           value={profile.name}
           onChange={handleChange}
           placeholder="Enter your name"
-          className="w-full px-4 py-2 bg-gray-100 rounded-md outline-none"
-          
-        />
+          className="w-full px-4 py-2 bg-gray-100 rounded-md outline-none"/>
 
         {/* Bio */}
         <textarea
@@ -72,11 +70,10 @@ export const Profile = () => {
           onChange={handleChange}
           placeholder="Tell us about yourself..."
           className="w-full px-4 py-2 bg-gray-100 rounded-md outline-none resize-none"
-          rows="4"
-          
-        ></textarea>
+          rows="4"></textarea>
 
         {/* Buttons */}
+
         <div className="flex justify-end gap-4">
           <button type="button"
             onClick={() => navigate("/profile")}

@@ -3,8 +3,8 @@ import softwares from "../assets/softwares.png";
 
 export const MainPage = () => {
   return (
-    <div className="flex justify-around items-center mt-20">
-    <section className="w-full flex flex-col items-center  px-6">
+    <div className="flex w-auto justify-around items-center mt-20">
+    <section className="w-full flex flex-col items-center px-6">
 
       {/* Main Title */}
       <h1 className="text-6xl md:text-7xl font-serif font-bold text-gray-900 text-center leading-tight">
@@ -21,7 +21,7 @@ export const MainPage = () => {
         Start reading
       </Link>
     </section>
-      <img src={softwares} alt="img" />
+      <img src={softwares} alt="img"/>
       </div>
   );
 };

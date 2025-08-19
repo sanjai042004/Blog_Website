@@ -16,12 +16,11 @@ export const Login = () => {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
+      const res = await axios.post("http://localhost:5000/api/login", 
+        {email,
+        password},{ withCredentials: true }
+      );
 
-      // Save token and redirect
       localStorage.setItem("token", res.data.token);
       navigate("/home");
     } catch (err) {

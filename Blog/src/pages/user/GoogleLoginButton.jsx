@@ -15,11 +15,11 @@ export const GoogleLoginButton = () => {
 
       localStorage.setItem("token", res.data.token);
 
-      alert(`Welcome ${res.data.user.name}`);
+      // alert(`Welcome ${res.data.user.name}`);
       navigate("/home");
     } catch (err) {
       console.error("Google Login Error:", err);
-      alert("Google login failed");
+      // alert("Google login failed");
     }
   };
 

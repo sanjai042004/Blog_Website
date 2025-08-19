@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cookieParser=require("cookie-parser")
 
 const routes = require("./src/routes")
 
@@ -9,9 +10,12 @@ const PORT = 5000;
 const app = express();
 
 
-app.use(cors());
 app.use(express.json());
-
+app.use(cookieParser());
+app.use(cors({
+  origin: "http://localhost:5173", 
+  credentials: true, 
+}));
 
 const mongoOptions = {
   maxPoolSize: 20,
@@ -28,17 +32,6 @@ const connectToMongoDB = async () => {
     process.exit(1);
   }
 };
-
-// Middleware to ensure MongoDB connection
-
-// app.use(async (_, res, next) => {
-//     try {
-//         await connectToMongoDB();
-//         next();
-//     } catch (error) {
-//         res.status(500).send("Internal Server Error");
-//     }
-// });
 
 
 app.use("/api/",routes);
