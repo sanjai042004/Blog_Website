@@ -1,55 +1,96 @@
-const User = require("../models/user.model");
+const RegisterModel = require("../models/register.model");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { OAuth2Client } = require("google-auth-library");
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
-const googleLogin = async (req, res) => {
+
+//register user
+const register = async (req, res) => {
   try {
-    const ticket = await client.verifyIdToken({
-      idToken: req.body.token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
-
-    
-    let user = await User.findOne({ $or: [{ googleId }, { email }] });
-
-
-    if (!user) {
-
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        profileImage: payload.picture, 
-      });
-    } else {
-      user.name = name;
-      user.profileImage = payload.picture;
-      await user.save();
+    let { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
 
-  
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "5d" }
-    );
+    email = email.toLowerCase();
 
-    res.status(200).json({ token, user });
-    
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const existingUser = await RegisterModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new RegisterModel({ email, password: hashedPassword });
+    const savedUser = await newUser.save();
+
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(201)
+      .json({ user: { id: savedUser._id, email: savedUser.email }, token });
   } catch (err) {
-    console.error("Google login error:", err);
-    res.status(400).json({ message: "Google login failed" });
+    console.error("Register Error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
+//Login user
 
+const login = async (req, res) => {
+  try {
+    let { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
-module.exports={
-  googleLogin,
-}
+    email = email.toLowerCase();
+
+    const user = await RegisterModel.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    res
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .status(200)
+      .json({ user: { id: user._id, email: user.email }, token });
+  } catch (err) {
+    console.error("Login Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Logout user
+
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+};
+
+module.exports = { register, login, logout };

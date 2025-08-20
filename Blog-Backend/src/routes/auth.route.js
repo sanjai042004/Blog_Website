@@ -1,6 +1,7 @@
+
 const express = require("express");
-const { googleLogin } = require("../controllers/auth.controller"); // if you use Google login
-const { register, login, logout } = require("../controllers/register.controller");
+const { googleLogin } = require("../controllers/googleAuth.controller");
+const { register, login, logout } = require("../controllers/auth.controller");
 const authMiddleware = require("../middleware/auth.middleware");
 
 const router = express.Router();

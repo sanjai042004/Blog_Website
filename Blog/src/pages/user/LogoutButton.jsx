@@ -8,7 +8,7 @@ export const LogoutButton = () => {
     try {
       await axios.post("http://localhost:5000/api/logout", {}, { withCredentials: true });
       localStorage.removeItem("token"); 
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }

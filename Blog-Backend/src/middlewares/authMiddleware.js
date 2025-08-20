@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const authMiddleware = (req, res, next) => {
   const token = req.cookies.token || req.headers["authorization"]?.split(" ")[1];
 
+
   if (!token) {
     return res.status(401).json({ message: "Unauthorized access" });
   }
@@ -13,7 +14,8 @@ const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; 
+
+    req.user = { id: decoded.id, email: decoded.email };
     next();
   } catch (err) {
     console.error("JWT verification error:", err.message);
