@@ -108,5 +108,5 @@ export const topics = ["Web Development", "JavaScript", "React", "AI & ML", "Tec
 export const userData={
     name: "Sanjai",
     bio: "Full Stack Developer | MERN",
-    image: ""
+    image: "https://imgs.search.brave.com/RIJ78YvOZhv5816VrwB5tzHiPRFlP8twQoBuoPsjRmk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTQ1/MTU4NzgwNy92ZWN0/b3IvdXNlci1wcm9m/aWxlLWljb24tdmVj/dG9yLWF2YXRhci1v/ci1wZXJzb24taWNv/bi1wcm9maWxlLXBp/Y3R1cmUtcG9ydHJh/aXQtc3ltYm9sLXZl/Y3Rvci5qcGc_cz02/MTJ4NjEyJnc9MCZr/PTIwJmM9eURKNElU/WDFjSE1oMjVMdDF2/STF6Qm4yY0FLS0Fs/QnlIQnZQSjhnRWlJ/Zz0"
 }

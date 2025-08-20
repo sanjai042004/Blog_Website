@@ -34,7 +34,7 @@ const connectToMongoDB = async () => {
 };
 
 
-app.use("/api/",routes);
+app.use("/api",routes);
 
 app.get("/", (_, res) => {
   res.send("Welcome to Blog Backend");

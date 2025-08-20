@@ -7,7 +7,7 @@ export const GoogleLoginButton = () => {
 
   const handleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/google", {
+      const res = await axios.post("http://localhost:5000/api/auth/google", {
         token: credentialResponse.credential,
       });
 
@@ -15,11 +15,11 @@ export const GoogleLoginButton = () => {
 
       localStorage.setItem("token", res.data.token);
 
-      // alert(`Welcome ${res.data.user.name}`);
+     
       navigate("/home");
     } catch (err) {
       console.error("Google Login Error:", err);
-      // alert("Google login failed");
+      
     }
   };
 

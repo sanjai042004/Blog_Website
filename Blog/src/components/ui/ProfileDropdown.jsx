@@ -11,7 +11,7 @@ import { TfiWrite } from "react-icons/tfi";
 export const ProfileDropdown = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();  // ✅ hook at top level
+  const navigate = useNavigate();
 
   useEffect(() => {
     setShowDropdown(false);
@@ -19,12 +19,16 @@ export const ProfileDropdown = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:5000/api/logout", {}, { withCredentials: true });
+      await axios.post(
+        "http://localhost:5000/api/auth/logout",
+        {},
+        { withCredentials: true }
+      );
       localStorage.removeItem("token");
-      localStorage.removeItem("user"); // optional
+      localStorage.removeItem("user"); 
       navigate("/login");
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Logout failed:", error.response?.data || error.message);
     }
   };
 
@@ -43,32 +47,32 @@ export const ProfileDropdown = () => {
             to="/profile"
             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
           >
-            <IoIosContact /> Profile
+            <IoIosContact className="size-6" /> Profile
           </NavLink>
           <NavLink
             to="/write"
             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
           >
-            <TfiWrite /> Write
+            <TfiWrite className="size-5" /> Write
           </NavLink>
           <NavLink
             to="/library"
             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
           >
-            <IoLibraryOutline /> Library
+            <IoLibraryOutline className="size-5" /> Library
           </NavLink>
           <NavLink
             to="/settings"
             className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
           >
-            <FiSettings /> Settings
+            <FiSettings className="size-5" /> Settings
           </NavLink>
 
           <button
             className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-red-500"
-            onClick={handleLogout}
+            onClick={handleLogout} // ✅ now works
           >
-            <BiLogOut /> Logout
+            <BiLogOut className="size-6" /> Logout
           </button>
         </div>
       )}

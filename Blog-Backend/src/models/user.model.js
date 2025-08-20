@@ -2,14 +2,19 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String },
     email: { type: String, required: true, unique: true },
-    googleId: { type: String, unique: true, sparse: true },
-    password: { type: String },
+    password: { type: String, default: null }, 
     profileImage: { type: String },
+    googleId: { type: String }, 
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model("google", userSchema);
+const User = mongoose.model("User", userSchema);
 module.exports = User;
