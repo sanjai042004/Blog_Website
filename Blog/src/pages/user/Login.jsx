@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -17,12 +16,11 @@ export const Login = () => {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", 
-        {email,
-        password},{ withCredentials: true }
-      );
-
-      localStorage.setItem("token", res.data.token);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        { email, password },
+        { withCredentials: true });
+        
       navigate("/home");
     } catch (err) {
       setError(err.response?.data?.message || "Server error");
@@ -42,28 +40,19 @@ export const Login = () => {
           <input
             type="email"
             placeholder="📧 Email"
-            className="w-full bg-gray-50 px-4 py-3 border-none outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full bg-gray-50 px-4 py-3 rounded-md outline-none"
           />
           <input
             type="password"
             placeholder="🔒 Password"
-            className="w-full bg-gray-50 px-4 py-3 border-none outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full bg-gray-50 px-4 py-3 rounded-md outline-none"
           />
-
-          <div className="text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Forgot Password?
-            </Link>
-          </div>
 
           <button
             type="submit"

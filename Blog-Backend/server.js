@@ -14,12 +14,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: "http://localhost:5173", 
-  credentials: true, 
+  credentials: true                
 }));
 
 const mongoOptions = {
   maxPoolSize: 20,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
 };
+
 
 const connectToMongoDB = async () => {
   try {
@@ -32,6 +35,12 @@ const connectToMongoDB = async () => {
     process.exit(1);
   }
 };
+
+app.use((err, req, res, next) => {
+  console.error("🔥 Error middleware:", err.message);
+  res.status(500).json({ message: "Internal Server Error" });
+});
+
 
 
 app.use("/api",routes);

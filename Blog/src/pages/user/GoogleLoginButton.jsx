@@ -7,28 +7,22 @@ export const GoogleLoginButton = () => {
 
   const handleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/google", {
-        token: credentialResponse.credential,
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/google",
+        { token: credentialResponse.credential },
+        { withCredentials: true }
+      );
 
-      console.log("Backend Response:", res.data);
-
-      localStorage.setItem("token", res.data.token);
-
-     
       navigate("/home");
     } catch (err) {
       console.error("Google Login Error:", err);
-      
     }
   };
 
   return (
-    <GoogleLogin 
+    <GoogleLogin
       onSuccess={handleSuccess}
-      onError={() => {
-        console.log("Google Login Failed");
-      }}
+      onError={() => console.log("Google Login Failed")}
     />
   );
 };

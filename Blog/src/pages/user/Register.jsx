@@ -12,14 +12,12 @@ export const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        email,
-        password,
-      });
-      console.log("data",res.data);
-      
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        { email, password },
+        { withCredentials: true } 
+      );
 
-      localStorage.setItem("token", res.data.token);
       navigate("/home");
     } catch (err) {
       setError(err.response?.data?.message || "Server error");
@@ -37,18 +35,18 @@ export const Register = () => {
           <input
             type="email"
             placeholder="📧 Email"
-            className="w-full bg-gray-50 px-6 py-3 border-none rounded-md outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
           />
           <input
             type="password"
             placeholder="🔒 Password"
-            className="w-full bg-gray-50 px-6 py-3 border-none rounded-md outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
           />
           <button
             type="submit"
@@ -64,9 +62,7 @@ export const Register = () => {
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        <div>
-          <GoogleLoginButton className="bg-amber-700" />
-        </div>
+        <GoogleLoginButton />
 
         <p className="text-center text-sm mt-4">
           Already have an account?{" "}

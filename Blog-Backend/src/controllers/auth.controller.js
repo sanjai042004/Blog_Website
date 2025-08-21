@@ -7,11 +7,9 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT helper
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
+  return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
 
 // ✅ Register
@@ -19,12 +17,16 @@ const register = async (req, res) => {
   try {
     let { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     email = email.toLowerCase();
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -33,7 +35,11 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword, authProvider: "local" });
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      authProvider: "local",
+    });
     const savedUser = await newUser.save();
 
     const token = generateToken(savedUser);
@@ -58,18 +64,39 @@ const login = async (req, res) => {
   try {
     let { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     email = email.toLowerCase();
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid email or password" });
+    if (!user)
+      return res.status(400).json({ message: "Invalid email or password" });
 
+    // Check user registered with Google
+    if (user.authProvider !== "local") {
+      return res
+        .status(400)
+        .json({ message: `Please login with ${user.authProvider}` });
+    }
+
+    // Ensure password exists
+    if (!user.password) {
+      return res
+        .status(400)
+        .json({ message: "Password not set, cannot login" });
+    }
+
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid email or password" });
 
+    // Generate JWT
     const token = generateToken(user);
 
+    // Send cookie + response
     res
       .cookie("token", token, {
         httpOnly: true,
@@ -89,7 +116,8 @@ const login = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
-    if (!token) return res.status(400).json({ message: "Google token is required" });
+    if (!token)
+      return res.status(400).json({ message: "Google token is required" });
 
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -119,7 +147,10 @@ const googleLogin = async (req, res) => {
         maxAge: 24 * 60 * 60 * 1000,
       })
       .status(200)
-      .json({ user: { id: user._id, email: user.email, name: user.name, picture }, token: jwtToken });
+      .json({
+        user: { id: user._id, email: user.email, name: user.name, picture },
+        token: jwtToken,
+      });
   } catch (err) {
     console.error("Google Login Error:", err);
     res.status(500).json({ message: "Server error" });
@@ -142,7 +173,6 @@ const getProfile = async (req, res) => {
 // ✅ Logout
 const logout = (req, res) => {
   res.clearCookie("token", {
-    
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
