@@ -1,18 +1,12 @@
 const express = require("express");
-const { googleLogin, getProfile, register, login, logout } = require("../controllers/auth.controller");
-const authMiddleware = require("../middlewares/authMiddleware");
-
 const router = express.Router();
+const {register,login,googleLogin,refreshToken,logout,getProfile} = require("../controllers/auth.controller");
+const { authenticateUser } = require("../middlewares/authMiddleware");
 
-// Normal auth
 router.post("/register", register);
 router.post("/login", login);
+router.post("/google", googleLogin); 
+router.post("/refresh", refreshToken);
 router.post("/logout", logout);
-
-// Google auth
-router.post("/google", googleLogin);
-
-// Protected
-router.get("/profile", authMiddleware, getProfile);
-
+router.get("/profile", authenticateUser, getProfile);
 module.exports = router;

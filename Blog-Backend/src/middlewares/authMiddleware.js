@@ -1,32 +1,46 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/user.model");
 
-const authMiddleware = (req, res, next) => {
+const authenticateUser = async (req, res, next) => {
   try {
+   
     const token =
-      req.cookies?.token || req.headers["authorization"]?.split(" ")[1];
+      req.cookies?.["accessToken"] ||
+      req.headers["authorization"]?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized access" });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: No token provided",
+      });
     }
 
     if (!process.env.JWT_SECRET) {
       throw new Error("JWT_SECRET not set in environment variables");
     }
 
-    //  Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      provider: decoded.provider,
-    };
+   
+    const user = await User.findById(decoded.id).select("-password -refreshTokens");
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+  
+    req.user = user;
 
     next();
   } catch (err) {
     console.error("JWT verification error:", err.message);
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return res.status(401).json({
+      success: false,
+      message:
+        err.name === "TokenExpiredError"
+          ? "Access token expired"
+          : "Invalid token",
+    });
   }
 };
 
-module.exports = authMiddleware;
+module.exports = { authenticateUser };

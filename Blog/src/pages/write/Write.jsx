@@ -3,8 +3,7 @@ import axios from "axios";
 import { Block } from "./Block";
 import { WriteNavbar } from "../../components/Navbars/WriteNavbar";
 import { newBlock } from "./helper";
-
-
+import { api } from "../../service/api/axios";
 
 export const Write = () => {
   const [postTitle, setPostTitle] = useState("");
@@ -12,7 +11,6 @@ export const Write = () => {
 
   const contentRefs = useRef([]);
   const imageInputRefs = useRef([]);
-
 
   const handleChange = (index, field, value) => {
     setBlocks((prev) => {
@@ -22,44 +20,36 @@ export const Write = () => {
     });
   };
 
-  const addBlock = () => {
-    setBlocks((prev) => ([...prev, newBlock()]));
-  };
+  const addBlock = () => setBlocks((prev) => [...prev, newBlock()]);
+  const removeBlock = (index) => setBlocks((prev) => prev.filter((_, i) => i !== index));
 
-  const removeBlock = (index) => {
-    setBlocks((prev) => prev.filter((_, i) => i !== index));
-  };
+ const handlePostClick = async () => {
+  try {
+    // sanitize blocks before sending to backend
+    const sanitizedBlocks = blocks.map(({ content, image, youtubeEmbed }) => ({
+      content,
+      image,
+      youtubeEmbed,
+    }));
 
-  const handlePostClick = async () => {
-    if (!postTitle.trim()) {
-      alert("Post title is required");
-      return;
-    }
+    const payload = {
+      title: postTitle,
+      blocks: sanitizedBlocks,
+    };
 
-    try {
-      const formData = new FormData();
-      formData.append("title", postTitle);
+    const res = await api.post("/posts/create", payload);
+    console.log("Post created:", res.data);
 
-      blocks.forEach((block, i) => {
-        formData.append(`blocks[${i}] [content]`, block.content || "");
-        formData.append(`blocks[${i}] [youtubeEmbed]`, block.youtubeEmbed || "");
-        if (block.image instanceof File) {
-          formData.append(`blocks[${i}] [image]`, block.image);
-        } else if (typeof block.image === "string") {
-          formData.append(`blocks[${i}] [imageUrl]`, block.image);
-        }
-      });
+    // reset
+    setPostTitle("");
+    setBlocks([newBlock()]);
+  } catch (err) {
+    console.error("Error submitting post:", err.response?.data || err);
+  }
+};
 
-      const res = await axios.post("/api/post/create", formData);
-      console.log("Post created:", res.data);
-      alert("Post submitted successfully!");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to submit post");
-    }
-  };
 
- 
+
   const handleTitleKey = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -77,7 +67,7 @@ export const Write = () => {
           type="text"
           value={postTitle}
           onChange={(e) => setPostTitle(e.target.value)}
-          onKeyDown={handleTitleKey}  
+          onKeyDown={handleTitleKey}
           placeholder="Title"
           className="w-full text-5xl font-serif font-bold mb-6 border-none outline-none placeholder-gray-200"
         />

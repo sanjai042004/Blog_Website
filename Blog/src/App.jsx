@@ -1,17 +1,16 @@
 import { Outlet } from "react-router-dom";
-import { useState } from "react";
-import { userData } from "./constant/data";
 import { Navbar } from "./components/Navbars";
 import { Footer } from "./components/ui";
-
+import { useAuth } from "./context/AuthContext";
 
 export const App = () => {
-  const [user, setUser] = useState(userData);
+  const { user, setUser, logout, loading } = useAuth();
+
+  if (loading) return <p className="text-center mt-20">Loading...</p>;
 
   return (
     <div className="min-h-screen flex flex-col">
-      
-      <Navbar />
+      <Navbar user={user} logout={logout} />
 
       <main className="flex-1">
         <Outlet context={{ user, setUser }} />

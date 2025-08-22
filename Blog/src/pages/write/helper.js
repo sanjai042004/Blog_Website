@@ -1,6 +1,6 @@
 export const newBlock = () => ({
   content: "",
-  image: null,
+  image: "",        
   preview: null,
   showImageOptions: false,
   youtubeEmbed: null,

@@ -1,27 +1,34 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
 export const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const { register } = useAuth(); // ✅ DRY: use context register
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        { email, password },
-        { withCredentials: true } 
-      );
+    setLoading(true);
+    setError("");
 
+    const result = await register(form.email, form.password); // centralized API call
+
+    if (result.success) {
       navigate("/home");
-    } catch (err) {
-      setError(err.response?.data?.message || "Server error");
+    } else {
+      setError(result.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -29,30 +36,37 @@ export const Register = () => {
       <div className="bg-white p-8 rounded-xl shadow-lg w-[500px]">
         <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {error && (
+          <div className="bg-red-100 text-red-600 px-4 py-2 rounded-md mb-4 text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleRegister} className="space-y-6">
           <input
             type="email"
+            name="email"
             placeholder="📧 Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={form.email}
+            onChange={handleChange}
             required
             className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
           />
           <input
             type="password"
-            placeholder="🔒 Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            name="password"
+            placeholder="🔒 Password (min 8 chars)"
+            value={form.password}
+            onChange={handleChange}
             required
             className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
           />
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
           >
-            Register
+            {loading ? "Creating..." : "Register"}
           </button>
         </form>
 

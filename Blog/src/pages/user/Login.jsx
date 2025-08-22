@@ -1,32 +1,34 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
 export const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const { login } = useAuth(); 
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password },
-        { withCredentials: true });
-        
+    const result = await login(form.email, form.password); // centralized API call
+
+    if (result.success) {
       navigate("/home");
-    } catch (err) {
-      setError(err.response?.data?.message || "Server error");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -34,32 +36,40 @@ export const Login = () => {
       <div className="bg-white p-8 rounded-xl shadow-lg w-[500px]">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
 
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {error && (
+          <div className="bg-red-100 text-red-600 px-4 py-2 rounded-md mb-4 text-center">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleLogin} className="space-y-7">
+        <form onSubmit={handleLogin} className="space-y-6">
           <input
             type="email"
+            name="email"
             placeholder="📧 Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={form.email}
+            onChange={handleChange}
             required
             className="w-full bg-gray-50 px-4 py-3 rounded-md outline-none"
           />
           <input
             type="password"
+            name="password"
             placeholder="🔒 Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={form.password}
+            onChange={handleChange}
             required
             className="w-full bg-gray-50 px-4 py-3 rounded-md outline-none"
           />
 
           <button
             type="submit"
-            className={`w-full py-2 rounded-md text-white ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"
-            }`}
             disabled={loading}
+            className={`w-full py-2 rounded-md text-white ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-800"
+            }`}
           >
             {loading ? "Logging in..." : "Login"}
           </button>

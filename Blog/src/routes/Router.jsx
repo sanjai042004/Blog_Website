@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { About, Home, ExplorePage, PostDetail } from "../pages";
 import { userData } from "../constant/data";
-import { Login, Register } from "../pages/user";
+import { Login, Profile, Register } from "../pages/user";
 import { HomePageLayout, MainLayout, WriteLayout } from "../layout";
 import { MainPage } from "../pages/MainPage";
 import { Write } from "../pages/write/Write";
@@ -36,7 +36,7 @@ export const Router = createBrowserRouter([
     ],
   },
   // { path: "profile", element: <ProfileView user={userData} /> },
-  // { path: "/profile", element: <Profile /> },
+  { path: "/profile", element: <Profile /> },
   {
     path: "/write",
     element: <WriteLayout />,

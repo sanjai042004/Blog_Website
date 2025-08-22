@@ -14,33 +14,32 @@ export const Block = ({
   imageInputRefs,
 }) => {
   const handleContentKey = (e) => {
-    //Enter
-
+    // Enter → new block
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (index === blocks.length - 1 && !block.content) return;
 
-      if (index < blocks.length - 1) contentRefs.current[index + 1]?.focus();
-      else {
+      if (index < blocks.length - 1) {
+        contentRefs.current[index + 1]?.focus();
+      } else {
         addBlock();
         setTimeout(() => contentRefs.current[index + 1]?.focus(), 50);
       }
     }
 
-    //BackSpace
-
+    // Backspace → delete block / clear media
     if (e.key === "Backspace") {
       if (block.content?.length > 0) return;
 
       if (block.preview) {
         e.preventDefault();
-        handleChange(index, "preview", null);
+        safeHandleChange(index, "preview", null);
         return;
       }
 
       if (block.youtubeEmbed) {
         e.preventDefault();
-        handleChange(index, "youtubeEmbed", null);
+        safeHandleChange(index, "youtubeEmbed", null);
         return;
       }
 
@@ -60,10 +59,24 @@ export const Block = ({
     }
   };
 
+  // ✅ sanitize values before passing to Mongo
   const safeHandleChange = (index, field, value) => {
-    handleChange(index, field, value);
+    let newValue = value;
 
-    const b = { ...blocks[index], [field]: value };
+    // Convert File → string URL
+    if (field === "image" || field === "preview") {
+      if (value instanceof File) {
+        newValue = URL.createObjectURL(value);
+      }
+      if (typeof value === "object" && value !== null) {
+        newValue = "";
+      }
+    }
+
+    handleChange(index, field, newValue);
+
+    // Auto-remove empty block
+    const b = { ...blocks[index], [field]: newValue };
     if (
       !b.content &&
       !b.preview &&
@@ -81,7 +94,7 @@ export const Block = ({
         <BlockOptions
           block={block}
           index={index}
-          handleChange={handleChange}
+          handleChange={safeHandleChange}
           imageInputRefs={imageInputRefs}
         />
       </div>
@@ -91,7 +104,7 @@ export const Block = ({
           <UnsplashSearch
             block={block}
             index={index}
-            handleChange={handleChange}
+            handleChange={safeHandleChange} 
           />
         )}
 
@@ -113,7 +126,7 @@ export const Block = ({
         )}
 
         {block.showVideoInput && !block.youtubeEmbed && (
-          <VideoInput index={index} handleChange={handleChange} />
+          <VideoInput index={index} handleChange={safeHandleChange} /> 
         )}
 
         <textarea
@@ -126,7 +139,7 @@ export const Block = ({
           }}
           onKeyDown={handleContentKey}
           placeholder="Tell your story..."
-          className="w-full text-2xl  border-none outline-none placeholder-gray-200 resize-none overflow-hidden"
+          className="w-full text-2xl border-none outline-none placeholder-gray-200 resize-none overflow-hidden"
           rows={1}
         />
       </div>

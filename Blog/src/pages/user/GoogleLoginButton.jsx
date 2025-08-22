@@ -1,21 +1,22 @@
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context";
 
 export const GoogleLoginButton = () => {
   const navigate = useNavigate();
+  const { googleLogin } = useAuth(); 
 
   const handleSuccess = async (credentialResponse) => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/google",
-        { token: credentialResponse.credential },
-        { withCredentials: true }
-      );
+    if (!credentialResponse?.credential) return;
 
+    const token = credentialResponse.credential;
+
+    const result = await googleLogin(token);
+
+    if (result.success) {
       navigate("/home");
-    } catch (err) {
-      console.error("Google Login Error:", err);
+    } else {
+      console.error("Google Login Error:", result.message);
     }
   };
 
@@ -23,6 +24,7 @@ export const GoogleLoginButton = () => {
     <GoogleLogin
       onSuccess={handleSuccess}
       onError={() => console.log("Google Login Failed")}
+      useOneTap
     />
   );
 };

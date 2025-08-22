@@ -94,7 +94,7 @@ export const dummyPosts = [
     title: "Deploying with Netlify",
     subtitle: "Host your site in minutes",
     content: "Netlify is a powerful platform to deploy static websites. Just connect your GitHub repo and it handles the rest...",
-    authorAvatar:"https://imgs.search.brave.com/fTmdpOyFLQOo6p7WsZpXDyN__eqBnnXRLz84SDvanuY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC82/Mi81OS9zaW1wbGUt/Z3JheS1wbGFjZWhv/bGRlci1hdmF0YXIt/dmVjdG9yLTIxNjY2/MjU5LmpwZw",
+    // authorAvatar:"https://imgs.search.brave.com/fTmdpOyFLQOo6p7WsZpXDyN__eqBnnXRLz84SDvanuY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC82/Mi81OS9zaW1wbGUt/Z3JheS1wbGFjZWhv/bGRlci1hdmF0YXIt/dmVjdG9yLTIxNjY2/MjU5LmpwZw",
     image: "https://imgs.search.brave.com/WF58DxfUwCjcIIi3M_D2YdvZjKyYr9zT0AcvYjcM7bU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMuYXBpZG9nLmNv/bS9ibG9nLW5leHQv/MjAyNS8wNy9pbWFn/ZS0yNzMucG5n",
     author: "Sanjai",
     date: "2025-08-10",
