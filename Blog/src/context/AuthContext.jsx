@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(userData));
     } else {
       localStorage.removeItem("user");
-      // ❌ don’t remove token here (only on logout)
     }
   };
 
@@ -26,14 +25,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.get("/auth/profile", { withCredentials: true });
       if (res.data.success) {
-        saveUser(res.data.user);
+        saveUser(res.data.user); 
         return res.data.user;
       } else {
         clearUser();
         return null;
       }
-    } catch {
-      console.log("No profile, probably not logged in yet");
+    } catch (err) {
+      console.log("Profile fetch failed:", err.response?.data || err.message);
       clearUser();
       return null;
     } finally {
@@ -53,18 +52,14 @@ export const AuthProvider = ({ children }) => {
   const authRequest = async (endpoint, payload) => {
     try {
       const res = await api.post(endpoint, payload, { withCredentials: true });
-
       if (res.data.success) {
-        // 🟢 Save access token
+        // Save new access token
         if (res.data.accessToken) {
           localStorage.setItem("accessToken", res.data.accessToken);
         }
-
-        // Fetch profile after saving token
         const freshUser = await fetchProfile();
         return { success: true, user: freshUser };
       }
-
       return { success: false, message: res.data.message };
     } catch (err) {
       return {
@@ -86,12 +81,10 @@ export const AuthProvider = ({ children }) => {
   const refreshAccessToken = async () => {
     try {
       const res = await api.post("/auth/refresh", {}, { withCredentials: true });
-
       if (res.data?.success) {
         if (res.data.accessToken) {
           localStorage.setItem("accessToken", res.data.accessToken);
         }
-
         const freshUser = await fetchProfile();
         return { ...res.data, user: freshUser };
       } else {
@@ -110,7 +103,6 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout error:", err.response?.data || err.message);
     } finally {
-      // 🟢 clear both user and token only on logout
       clearUser();
       localStorage.removeItem("accessToken");
     }

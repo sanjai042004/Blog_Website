@@ -11,6 +11,8 @@ router.get("/:id", getPostById);
 
 router.post("/", authenticateUser, upload.array("images"), createPost);
 
+router.put("/:id", authenticateUser, upload.array("images"), updatePost);
+
 router.delete("/:id", authenticateUser, deletePost);
 
 router.post("/:id/comments", authenticateUser, addComment);
