@@ -8,14 +8,14 @@ export const Profile = () => {
 
   useEffect(() => {
     const initializeProfile = async () => {
-      if (!user) { // Only refresh if user is null
+      if (!user) {
         try {
           await refreshAccessToken();
         } catch (err) {
           setError(err.response?.data?.message || "Failed to load profile");
         }
       }
-      setLoading(false); // Always stop loading
+      setLoading(false);
     };
 
     initializeProfile();
@@ -25,21 +25,23 @@ export const Profile = () => {
   if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
   if (!user) return <p className="text-center mt-20">No user data found</p>;
 
+  const avatarContent = user.profileImage ? (
+    <img
+      src={user.profileImage}
+      alt="Profile"
+      className="w-24 h-24 rounded-full object-cover border border-gray-300"
+    />
+  ) : (
+    <div className="w-24 h-24 flex items-center justify-center rounded-full bg-blue-500 text-white text-3xl font-bold">
+      {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+    </div>
+  );
+
   return (
     <div className="max-w-3xl mx-auto my-10 p-6 bg-white rounded-xl shadow-md">
       <h2 className="text-2xl font-bold mb-6">Profile</h2>
       <div className="flex items-center gap-6">
-        {user.profileImage ? (
-          <img
-            src={user.profileImage}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover border border-gray-300"
-          />
-        ) : (
-          <div className="w-24 h-24 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 text-3xl font-bold">
-            {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-          </div>
-        )}
+        {avatarContent}
 
         <div>
           <p className="text-lg font-semibold">Name: {user.name || "N/A"}</p>

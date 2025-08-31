@@ -5,69 +5,69 @@ import {
 } from "react-icons/io5";
 import { LuFileVideo } from "react-icons/lu";
 import { TbBrandUnsplash } from "react-icons/tb";
-import { prepareImage } from "./helper";
 
 export const BlockOptions = ({
-  block,
+  block = {},
   index,
   handleChange,
-  imageInputRefs,
+  onUploadClick, 
 }) => {
-  const hideIcons = !!block.content;
+  const ui = block.ui || {}; 
+  const expanded = ui.showOptions;
 
-  const handleFileChange = (file) => {
-    if (!file) return;
-    const updated = prepareImage(file, block.preview);
-    handleChange(index, "image", updated.image);
-    handleChange(index, "preview", updated.preview);
-    handleChange(index, "showImageOptions", updated.showImageOptions);
-  };
+  // If block already has content or media → don't show options
+  if (block.content || block.media || block.youtubeEmbed) return null;
 
-  if (hideIcons) return null;
+  const toggleOptions = () =>
+    handleChange(index, "ui", { ...ui, showOptions: !expanded });
 
   return (
-    <div className="flex gap-3 mb-15 items-center">
-      {/* Toggle Add/Close */}
-      <button
-        onClick={() =>
-          handleChange(index, "showImageOptions", !block.showImageOptions)
-        }
-      >
-        {block.showImageOptions ? (
-          <IoCloseCircleOutline className="size-10 cursor-pointer text-gray-500" />
+    <div className="flex gap-3 items-center mt-3">
+      {/* Toggle Add / Close */}
+      <button type="button" onClick={toggleOptions}>
+        {expanded ? (
+          <IoCloseCircleOutline className="size-9 cursor-pointer text-gray-500 hover:text-red-500 transition" />
         ) : (
-          <IoAddCircleOutline className="size-10 cursor-pointer text-gray-300 hover:text-gray-500" />
+          <IoAddCircleOutline className="size-9 cursor-pointer text-gray-300 hover:text-gray-500 transition" />
         )}
       </button>
 
-      {block.showImageOptions && (
-        <>
-          {/* Upload image */}
-          <button onClick={() => imageInputRefs.current[index]?.click()}>
-            <IoImageOutline className="size-7 cursor-pointer text-gray-500 hover:text-green-700" />
+      {/* Options */}
+      {expanded && (
+        <div className="flex gap-4 animate-fade-in">
+          {/* Upload Image */}
+          <button type="button" onClick={onUploadClick}>
+            <IoImageOutline className="size-7 cursor-pointer text-gray-500 hover:text-green-700 transition" />
           </button>
-          <input
-            type="file"
-            accept="image/*"
-            ref={(el) => (imageInputRefs.current[index] = el)}
-            onChange={(e) => handleFileChange(e.target.files[0])}
-            className="hidden"
-          />
 
           {/* Video */}
-          <button onClick={() => handleChange(index, "showVideoInput", true)}>
-            <LuFileVideo className="size-7 cursor-pointer text-gray-500 hover:text-gray-700" />
+          <button
+            type="button"
+            onClick={() =>
+              handleChange(index, "ui", {
+                ...ui,
+                showVideoInput: true,
+                showOptions: false,
+              })
+            }
+          >
+            <LuFileVideo className="size-7 cursor-pointer text-gray-500 hover:text-gray-700 transition" />
           </button>
 
           {/* Unsplash */}
           <button
+            type="button"
             onClick={() =>
-              handleChange(index, "showUnsplashInput", !block.showUnsplashInput)
+              handleChange(index, "ui", {
+                ...ui,
+                showUnsplashInput: true,
+                showOptions: false,
+              })
             }
           >
-            <TbBrandUnsplash className="size-7 cursor-pointer text-gray-500 hover:text-gray-700" />
+            <TbBrandUnsplash className="size-7 cursor-pointer text-gray-500 hover:text-gray-700 transition" />
           </button>
-        </>
+        </div>
       )}
     </div>
   );

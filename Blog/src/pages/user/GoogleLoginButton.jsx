@@ -9,12 +9,12 @@ export const GoogleLoginButton = () => {
   const handleSuccess = async (credentialResponse) => {
     if (!credentialResponse?.credential) return;
 
-    const token = credentialResponse.credential;
+    const token = credentialResponse.credential; // Google ID Token
 
-    const result = await googleLogin(token);
+    const result = await googleLogin(token); // Call backend
 
     if (result.success) {
-      navigate("/home");
+      navigate("/home"); // Redirect after success
     } else {
       console.error("Google Login Error:", result.message);
     }

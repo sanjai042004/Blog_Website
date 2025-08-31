@@ -1,72 +1,136 @@
-import { useState, useRef } from "react";
-import axios from "axios";
+import { useReducer, useRef, useState } from "react";
 import { Block } from "./Block";
 import { WriteNavbar } from "../../components/Navbars/WriteNavbar";
-import { newBlock } from "./helper";
-import { api } from "../../service/api/axios";
+import { newBlock } from "../../constant/helper";
+import { useNavigate } from "react-router-dom";
+import { api } from "../../service/api";
+
+// Initial State
+const initialState = {
+  postTitle: "",
+  blocks: [newBlock()],
+  loading: false,
+};
+
+// Reducer
+function reducer(state, action) {
+  switch (action.type) {
+    case "SET_TITLE":
+      return { ...state, postTitle: action.payload };
+    case "ADD_BLOCK": {
+      const type = action.payload?.type || "text";
+      return { ...state, blocks: [...state.blocks, { ...newBlock(), type }] };
+    }
+    case "REMOVE_BLOCK":
+      return { ...state, blocks: state.blocks.filter((_, i) => i !== action.payload) };
+    case "UPDATE_BLOCK":
+      return {
+        ...state,
+        blocks: state.blocks.map((b, i) =>
+          i === action.payload.index ? { ...b, [action.payload.field]: action.payload.value } : b
+        ),
+      };
+    case "RESET":
+      return { ...initialState, blocks: [newBlock()] };
+    case "SET_LOADING":
+      return { ...state, loading: action.payload };
+    default:
+      return state;
+  }
+}
 
 export const Write = () => {
-  const [postTitle, setPostTitle] = useState("");
-  const [blocks, setBlocks] = useState([newBlock()]);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { postTitle, blocks, loading } = state;
 
   const contentRefs = useRef([]);
   const imageInputRefs = useRef([]);
+  const navigate = useNavigate();
 
+  // Handlers
   const handleChange = (index, field, value) => {
-    setBlocks((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
+    dispatch({ type: "UPDATE_BLOCK", payload: { index, field, value } });
   };
 
-  const addBlock = () => setBlocks((prev) => [...prev, newBlock()]);
-  const removeBlock = (index) => setBlocks((prev) => prev.filter((_, i) => i !== index));
+  const addBlock = (type = "text") => dispatch({ type: "ADD_BLOCK", payload: { type } });
+  const removeBlock = (index) => dispatch({ type: "REMOVE_BLOCK", payload: index });
 
- const handlePostClick = async () => {
-  try {
-    // sanitize blocks before sending to backend
-    const sanitizedBlocks = blocks.map(({ content, image, youtubeEmbed }) => ({
-      content,
-      image,
-      youtubeEmbed,
-    }));
+  // File / Unsplash Handling
+  const handleFileChange = (index, file) => {
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    handleChange(index, "type", "image");
+    handleChange(index, "preview", preview);
+    handleChange(index, "media", preview);     
+    handleChange(index, "imageFile", file);    
+  };
 
-    const payload = {
-      title: postTitle,
-      blocks: sanitizedBlocks,
-    };
+  const handleUnsplashSelect = (index, unsplashUrl) => {
+    handleChange(index, "type", "image");
+    handleChange(index, "preview", unsplashUrl);
+    handleChange(index, "media", unsplashUrl);
+    handleChange(index, "imageFile", undefined); 
+  };
 
-    const res = await api.post("/posts/create", payload);
-    console.log("Post created:", res.data);
+  // Validation
+  const validatePost = () => {
+    if (!postTitle.trim()) { alert("Post title is required!"); return false; }
+    const hasContent = blocks.some(
+      (b) => (b.type === "text" && b.content?.trim()) || (b.type === "image" && b.media) || b.youtubeEmbed
+    );
+    if (!hasContent) { alert("Post content is empty!"); return false; }
+    return true;
+  };
 
-    // reset
-    setPostTitle("");
-    setBlocks([newBlock()]);
-  } catch (err) {
-    console.error("Error submitting post:", err.response?.data || err);
-  }
-};
+  // Submit to backend
+  const handlePostClick = async () => {
+    if (!validatePost()) return;
 
+    try {
+      dispatch({ type: "SET_LOADING", payload: true });
+      const formData = new FormData();
+      formData.append("title", postTitle);
 
+      // Remove temporary fields for clean submission
+      const cleanBlocks = blocks.map(({ preview, imageFile, ...rest }) => rest);
+      formData.append("blocks", JSON.stringify(cleanBlocks));
 
-  const handleTitleKey = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      contentRefs.current[0]?.focus();
+      // Append local image files only
+      blocks.forEach((b) => {
+        if (b.imageFile instanceof File) formData.append("images", b.imageFile);
+      });
+
+      const res = await api.post("/posts", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+
+      alert("Post created successfully!");
+      dispatch({ type: "RESET" });
+      navigate(`/home/post/${res.data.post._id}`);
+    } catch (err) {
+      console.error("Post creation failed:", err.response?.data || err);
+      alert(err.response?.data?.message || "Failed to create post.");
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
+  // Title enter key focus
+  const handleTitleKey = (e) => {
+    if (e.key === "Enter") { e.preventDefault(); contentRefs.current[0]?.focus(); }
+  };
+
+
   return (
     <div>
-      <WriteNavbar onPost={handlePostClick} loading={false} />
+      <WriteNavbar onPost={handlePostClick} loading={loading} />
 
       <div className="max-w-5xl mt-8 mx-auto px-6 py-10">
-        {/* Title */}
         <input
           type="text"
           value={postTitle}
-          onChange={(e) => setPostTitle(e.target.value)}
+          onChange={(e) => dispatch({ type: "SET_TITLE", payload: e.target.value })}
           onKeyDown={handleTitleKey}
           placeholder="Title"
           className="w-full text-5xl font-serif font-bold mb-6 border-none outline-none placeholder-gray-200"
@@ -83,6 +147,8 @@ export const Write = () => {
             addBlock={addBlock}
             contentRefs={contentRefs}
             imageInputRefs={imageInputRefs}
+            handleFileChange={handleFileChange}
+            handleUnsplashSelect={handleUnsplashSelect}
           />
         ))}
       </div>

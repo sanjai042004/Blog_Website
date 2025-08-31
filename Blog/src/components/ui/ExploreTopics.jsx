@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSearch } from "../../context/SearchContext";
-import { topics } from "../../constant/data";
+// import { topics } from "../../constant/data";
 
 export const ExploreTopics = () => {
   const { setSearchTerm } = useSearch();
@@ -14,7 +14,7 @@ export const ExploreTopics = () => {
   return (
     <div className="flex justify-center w-full overflow-x-auto py-3">
       <div className="flex gap-3 px-4 whitespace-nowrap">
-        {topics.map((topic, index) => (
+        {map((topic, index) => (
           <button
             key={index}
             onClick={() => handleTopicClick(topic)}

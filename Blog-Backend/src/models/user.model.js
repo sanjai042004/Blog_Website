@@ -2,41 +2,57 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, trim: true },
+    name: {
+      type: String,
+      trim: true,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
-      lowercase: true,
-      trim: true,
       unique: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
-    password: { type: String, default: null },
+    password: {
+      type: String,
+      minlength: 8,
+      select: false,
+    },
+    googleId: {
+      type: String,
+      index: true,
+      sparse: true,
+    },
     profileImage: {
       type: String,
-      default: "https://ui-avatars.com/api/?name=User&background=random",
+      default: "",
     },
-
-    googleId: { type: String, default: null },
     authProvider: {
       type: String,
       enum: ["local", "google"],
+      required: true,
       default: "local",
     },
     refreshTokens: {
       type: [String],
       default: [],
-
       validate: {
-        validator: function (arr) {
-          return arr.length <= 5;
-        },
-        message: "Exceeded maximum active sessions (5)",
+        validator: (arr) => arr.length <= 50,
+        message: "Exceeded maximum number of refresh tokens (50)",
       },
+    },
+
+    // ✅ Role field
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
   },
   { timestamps: true }
 );
 
-
 const User = mongoose.model("User", userSchema);
+
 module.exports = User;

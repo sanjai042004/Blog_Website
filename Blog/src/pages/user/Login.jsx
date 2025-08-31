@@ -20,7 +20,7 @@ export const Login = () => {
     setLoading(true);
     setError("");
 
-    const result = await login(form.email, form.password); // centralized API call
+    const result = await login(form.email, form.password); 
 
     if (result.success) {
       navigate("/home");

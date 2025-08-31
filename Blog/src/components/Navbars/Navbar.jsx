@@ -43,7 +43,7 @@ export const Navbar = () => {
     <nav className="flex items-center justify-between px-8 py-8 border-b border-gray-200 sticky top-0 bg-white z-50">
     
       <div className="text-2xl font-bold text-black">
-        <NavLink to="/">CodeVerse</NavLink>
+        <NavLink to="/home">CodeVerse</NavLink>
         
       </div>
 
