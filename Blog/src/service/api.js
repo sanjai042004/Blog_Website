@@ -56,7 +56,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Call refresh endpoint (cookie refreshToken is sent automatically)
+        // Call refresh endpoint
         const res = await axios.post(
           "http://localhost:5000/api/auth/refresh",
           {},
@@ -71,7 +71,7 @@ api.interceptors.response.use(
 
         processQueue(null, newToken);
 
-        // Retry the original request with new token
+        // Retry original request with new token
         originalRequest.headers.Authorization = "Bearer " + newToken;
         return api(originalRequest);
       } catch (err) {

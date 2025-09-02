@@ -2,13 +2,19 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const http = require("http");
 const cookieParser = require("cookie-parser");
 const routes = require("./src/routes");
 const path = require("path");
-const multer = require("multer"); 
+const multer = require("multer");
+const { init: initSocket } = require("./src/socket/socket"); 
 
 const PORT = 5000;
 const app = express();
+const server = http.createServer(app);
+
+
+const io = initSocket(server);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,12 +25,8 @@ app.use(cors({
   credentials: true                
 }));
 
-const mongoOptions = {
-  maxPoolSize: 20,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-};
-
+//  MongoDB connection
+const mongoOptions = { maxPoolSize: 20, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000 };
 const connectToMongoDB = async () => {
   try {
     const mongoUri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.hvunclv.mongodb.net/blogdb?retryWrites=true&w=majority&appName=Cluster0`;
@@ -34,35 +36,30 @@ const connectToMongoDB = async () => {
     console.error("❌ Error connecting to MongoDB:", error.message);
     process.exit(1);
   }
-}
+};
 
-//middlewares
-
-app.use((err, req, res, next) => {
-  console.error("🔥 Error middleware:", err.message);
-  
-  // Multer specific error handling
-  if (err instanceof multer.MulterError) {
-    switch (err.code) {
-      case "LIMIT_FILE_SIZE":
-        return res.status(400).json({ message: "Error: File too large! Max size: 10MB" });
-      default:
-        return res.status(400).json({ message: `Multer Error: ${err.message}` });
-    }
-  }
-  
-  // General error handling
-  return res.status(500).json({ message: "Internal Server Error", error: err.message });
-});
-
+// Routes
 app.use("/api", routes);
 
+// Default route
 app.get("/", (_, res) => {
   res.send("Welcome to Blog Backend");
 });
 
+// Error middleware
+app.use((err, req, res, next) => {
+  console.error("🔥 Error middleware:", err.message);
+  
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: `Multer Error: ${err.message}` });
+  }
+  
+  return res.status(500).json({ message: "Internal Server Error", error: err.message });
+});
+
+// Start server after MongoDB
 connectToMongoDB().then(() => {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
   });
 });

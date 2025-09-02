@@ -3,24 +3,27 @@ import { useNavigate } from "react-router-dom";
 
 export const PostCard = ({ post, formatDate }) => {
   const navigate = useNavigate();
-  const BACKEND_URL = "http://localhost:5000"; 
+  const BACKEND_URL = "http://localhost:5000";
 
-  // Get first image / YouTube thumbnail / fallback
   const getPostCardImage = (post) => {
-    // 1️⃣ Main image
+    // Main image
     if (post.image) {
-      return post.image.startsWith("http") ? post.image : `${BACKEND_URL}${post.image}`;
+      return post.image.startsWith("http")
+        ? post.image
+        : `${BACKEND_URL}${post.image}`;
     }
 
-    // 2️⃣ First image block (including Unsplash)
-    const firstImageBlock = post.blocks?.find((b) => b.type === "image" && b.media);
+    // First image block (including Unsplash)
+    const firstImageBlock = post.blocks?.find(
+      (b) => b.type === "image" && b.media
+    );
     if (firstImageBlock) {
       return firstImageBlock.media.startsWith("http")
         ? firstImageBlock.media
         : `${BACKEND_URL}${firstImageBlock.media}`;
     }
 
-    // 3️⃣ Any block with YouTube embed
+    // Any block with YouTube embed
     const firstYoutubeBlock = post.blocks?.find((b) => b.youtubeEmbed);
     if (firstYoutubeBlock) {
       const videoIdMatch = firstYoutubeBlock.youtubeEmbed.match(
@@ -30,11 +33,11 @@ export const PostCard = ({ post, formatDate }) => {
       if (videoId) return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     }
 
-    // 4️⃣ Fallback
+    // Fallback
     return "/placeholder.jpg";
   };
 
-  // Get first text block for preview =====
+  // Get first text block for preview
   const getTextPreview = (post) => {
     const textBlock = post.blocks?.find((b) => b.type === "text" && b.content);
     if (!textBlock?.content) return "";
@@ -105,7 +108,9 @@ export const PostCard = ({ post, formatDate }) => {
             >
               By {authorName}
             </span>
-            <span>{post.createdAt ? formatDate(post.createdAt) : "Unknown Date"}</span>
+            <span>
+              {post.createdAt ? formatDate(post.createdAt) : "Unknown Date"}
+            </span>
           </div>
         </div>
       </div>
