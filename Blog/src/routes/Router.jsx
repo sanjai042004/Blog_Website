@@ -1,9 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
-import { About, Home, ExplorePage, PostDetail } from "../pages";
+import { About, Home, ExplorePage } from "../pages";
 import { Login,  Profile,  Register } from "../pages/user";
 import { HomePageLayout, MainLayout, WriteLayout } from "../layout";
 import { MainPage } from "../pages/MainPage";
 import { Write } from "../pages/write/Write";
+import { PostDetail } from "../pages/PostDetails";
+
 
 export const Router = createBrowserRouter([
   {

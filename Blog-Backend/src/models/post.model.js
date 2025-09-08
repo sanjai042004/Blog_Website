@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
+
 const commentSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    text: String,
+    text: { type: String, required: true, trim: true },
+    claps: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // ✅ Only ObjectIds
   },
-  { timestamps: true } 
+  { timestamps: true,optimisticConcurrency: false  }
 );
 
 const postSchema = new mongoose.Schema(
@@ -28,13 +30,8 @@ const postSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    claps: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        count: { type: Number, default: 1 },
-      },
-    ],
-    comments: [commentSchema], 
+    claps: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // ✅ Simplified
+    comments: [commentSchema],
     image: String,
   },
   { timestamps: true }

@@ -1,10 +1,10 @@
-import { useRef, useCallback } from "react";
+import React, { useRef, useCallback, memo } from "react";
 import { UnsplashSearch } from "./UnsplashSearch";
 import { VideoInput } from "./VideoInput";
 import { ImagePreview } from "./ImagePreview";
 import { BlockOptions } from "./BlockOptions";
 
-export const Block = ({
+const BlockComponent = ({
   index,
   block,
   blocks,
@@ -16,63 +16,96 @@ export const Block = ({
 }) => {
   const fileInputRef = useRef();
 
-  // ---- Helpers ----
+  // Helpers
   const focusNext = useCallback(
     (nextIndex) => {
+      if (nextIndex < 0) return;
       setTimeout(() => {
-        if (contentRefs.current[nextIndex]) {
-          contentRefs.current[nextIndex].focus();
-        }
+        contentRefs.current[nextIndex]?.focus();
       }, 50);
     },
     [contentRefs]
   );
 
   const removeImage = useCallback(() => {
-    handleChange(index, "type", "text");     
-    handleChange(index, "media", null);
     handleChange(index, "preview", null);
+    handleChange(index, "media", null);
     handleChange(index, "imageFile", null);
+    handleChange(index, "type", "text");
   }, [handleChange, index]);
 
   const removeYoutube = useCallback(() => {
     handleChange(index, "youtubeEmbed", null);
   }, [handleChange, index]);
 
-  // ---- Keyboard Shortcuts ----
-  const handleContentKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const removeUnsplash = useCallback(() => {
+    handleChange(index, "unsplashResults", []);
+    handleChange(index, "unsplashQuery", "");
+  }, [handleChange, index]);
 
-      // prevent creating empty block at end
-      if (index === blocks.length - 1 && !block.content?.trim()) return;
+  const onFileChange = useCallback(
+    (e) => {
+      if (e.target.files?.[0]) {
+        handleFileChange(index, e.target.files[0]);
+      }
+    },
+    [handleFileChange, index]
+  );
 
-      if (index < blocks.length - 1) {
-        focusNext(index + 1);
-      } else {
-        addBlock();
-        focusNext(index + 1);
-      }
-    }
+  // Keyboard Shortcuts
+  const handleContentKey = useCallback(
+    (e) => {
+      // ENTER: move to next block or create new
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
 
-    if (e.key === "Backspace" && !block.content) {
-      if (block.preview) {
-        e.preventDefault();
-        removeImage();
-        return;
+        if (index === blocks.length - 1 && !block.content?.trim()) return;
+
+        if (index < blocks.length - 1) {
+          focusNext(index + 1);
+        } else {
+          addBlock();
+          focusNext(index + 1);
+        }
       }
-      if (block.youtubeEmbed) {
+
+      // BACKSPACE: remove media / video / Unsplash / block
+      if (e.key === "Backspace" && !block.content?.trim()) {
         e.preventDefault();
-        removeYoutube();
-        return;
+
+        if (block.preview || block.media) {
+          removeImage();
+          return;
+        }
+
+        if (block.youtubeEmbed) {
+          removeYoutube();
+          return;
+        }
+
+        if (block.unsplashResults?.length > 0 || block.unsplashQuery) {
+          removeUnsplash();
+          return;
+        }
+
+        if (blocks.length > 1) {
+          removeBlock(index);
+          focusNext(index - 1);
+        }
       }
-      if (!block.preview && !block.youtubeEmbed && blocks.length > 1) {
-        e.preventDefault();
-        removeBlock(index);
-        focusNext(index - 1);
-      }
-    }
-  };
+    },
+    [
+      block,
+      blocks,
+      index,
+      addBlock,
+      removeBlock,
+      focusNext,
+      removeImage,
+      removeYoutube,
+      removeUnsplash,
+    ]
+  );
 
   return (
     <div className="flex items-start gap-3 mt-10">
@@ -92,18 +125,20 @@ export const Block = ({
           ref={fileInputRef}
           className="hidden"
           accept="image/*"
-          onChange={(e) => handleFileChange(index, e.target.files[0])}
+          onChange={onFileChange}
         />
 
         {/* Unsplash Search */}
         {block.ui?.showUnsplashInput && (
-          <UnsplashSearch block={block} index={index} handleChange={handleChange} />
+          <UnsplashSearch
+            block={block}
+            index={index}
+            handleChange={handleChange}
+          />
         )}
 
         {/* Image Preview */}
-        {block.preview && (
-          <ImagePreview url={block.preview} onRemove={removeImage} />
-        )}
+        {block.preview && <ImagePreview url={block.preview} onRemove={removeImage} />}
 
         {/* YouTube Embed */}
         {block.youtubeEmbed && (
@@ -119,7 +154,7 @@ export const Block = ({
 
         {/* Video Input */}
         {block.ui?.showVideoInput && !block.youtubeEmbed && (
-          <VideoInput index={index} handleChange={handleChange} />
+          <VideoInput index={index} block={block} handleChange={handleChange} />
         )}
 
         {/* Textarea */}
@@ -140,3 +175,5 @@ export const Block = ({
     </div>
   );
 };
+
+export const Block = memo(BlockComponent);

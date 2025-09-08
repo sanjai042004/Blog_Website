@@ -8,87 +8,79 @@ import { TfiWrite } from "react-icons/tfi";
 import { useAuth } from "../../context/AuthContext";
 import { useClickAway } from "react-use";
 
+const Avatar = ({ user }) => {
+  if (!user) {
+    return (
+      <IoIosContact
+        size={24}
+        className="w-10 h-10 bg-gray-300 rounded-full p-2 text-gray-700"
+      />
+    );
+  }
+
+  return user.profileImage ? (
+    <img
+      src={user.profileImage}
+      alt={user.name}
+      className="w-10 h-10 rounded-full object-cover"
+    />
+  ) : (
+    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+      {user.name?.[0]?.toUpperCase()}
+    </div>
+  );
+};
+
 export const ProfileDropdown = () => {
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const ref = useRef(null);
 
-  const dropdownRef = useRef(null);
-
-  // Close when route changes
-  useEffect(() => {
-    setShowDropdown(false);
-  }, [location]);
-
-  
-  useClickAway(dropdownRef, () => setShowDropdown(false));
+  // Close on route change
+  useEffect(() => setOpen(false), [location]);
+  useClickAway(ref, () => setOpen(false));
 
   const handleLogout = async () => {
     try {
       await logout();
       navigate("/");
-    } catch (error) {
-      console.error("Logout failed:", error.response?.data || error.message);
+    } catch (err) {
+      console.error("Logout failed:", err.response?.data || err.message);
     }
   };
 
+  const menuItems = [
+    { to: "/profile", label: "Profile", icon: <IoIosContact className="size-6" /> },
+    { to: "/write", label: "Write", icon: <TfiWrite className="size-5" /> },
+    { to: "/library", label: "Library", icon: <IoLibraryOutline className="size-5" /> },
+    { to: "/settings", label: "Settings", icon: <FiSettings className="size-5" /> },
+  ];
+
   return (
-    <div className="ml-6 relative hidden sm:flex" ref={dropdownRef}>
-      <div
-        className="cursor-pointer"
-        onClick={() => setShowDropdown(!showDropdown)}
-      >
-        {user ? (
-          user.profileImage ? (
-            <img
-              src={user.profileImage}
-              alt={user.profileImage}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
-              {user.name?.charAt(0).toUpperCase()}
-            </div>
-          )
-        ) : (
-          <IoIosContact
-            size={24}
-            className="w-10 h-10 bg-gray-300 rounded-full p-2 text-gray-700"
-          />
-        )}
+    <div className="ml-6 relative hidden sm:flex" ref={ref}>
+      {/* Avatar */}
+      <div className="cursor-pointer" onClick={() => setOpen(!open)}>
+        <Avatar user={user} />
       </div>
 
-      {showDropdown && (
+      {/* Dropdown */}
+      {open && (
         <div className="absolute right-0 top-14 bg-white shadow-md rounded-md w-44 z-50">
-          <NavLink
-            to="/profile"
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
-          >
-            <IoIosContact className="size-6" /> Profile
-          </NavLink>
-          <NavLink
-            to="/write"
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
-          >
-            <TfiWrite className="size-5" /> Write
-          </NavLink>
-          <NavLink
-            to="/library"
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
-          >
-            <IoLibraryOutline className="size-5" /> Library
-          </NavLink>
-          <NavLink
-            to="/settings"
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
-          >
-            <FiSettings className="size-5" /> Settings
-          </NavLink>
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-gray-700"
+            >
+              {item.icon} {item.label}
+            </NavLink>
+          ))}
 
           <button
-            className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-red-500"
             onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-red-500"
           >
             <BiLogOut className="size-6" /> Logout
           </button>

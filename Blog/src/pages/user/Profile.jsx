@@ -1,34 +1,24 @@
-import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 export const Profile = () => {
-  const { user: currentUser, refreshAccessToken } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user: currentUser, loading, error } = useAuth();
 
-  useEffect(() => {
-    const initializeProfile = async () => {
-      if (!currentUser) {
-        try {
-          await refreshAccessToken();
-        } catch (err) {
-          setError(err.response?.data?.message || "Failed to load profile");
-        }
-      }
-      setLoading(false);
-    };
+  if (loading) {
+    return <p className="text-center mt-20">Loading profile...</p>;
+  }
 
-    initializeProfile();
-  }, [currentUser, refreshAccessToken]);
+  if (error) {
+    return <p className="text-center mt-20 text-red-500">{error}</p>;
+  }
 
-  if (loading) return <p className="text-center mt-20">Loading profile...</p>;
-  if (error) return <p className="text-center mt-20 text-red-500">{error}</p>;
-  if (!currentUser) return <p className="text-center mt-20">No user data found</p>;
+  if (!currentUser) {
+    return <p className="text-center mt-20">No user data found</p>;
+  }
 
   const avatarContent = currentUser.profileImage ? (
     <img
       src={currentUser.profileImage}
-      alt={currentUser.name || "Profile"}
+      alt={currentUser.name ? `${currentUser.name}'s avatar` : "Profile avatar"}
       className="w-24 h-24 rounded-full object-cover border border-gray-300"
     />
   ) : (
@@ -43,7 +33,9 @@ export const Profile = () => {
       <div className="flex items-center gap-6">
         {avatarContent}
         <div>
-          <p className="text-lg font-semibold">Name: {currentUser.name || "N/A"}</p>
+          <p className="text-lg font-semibold">
+            Name: {currentUser.name || "N/A"}
+          </p>
           <p className="text-gray-600">Email: {currentUser.email || "N/A"}</p>
         </div>
       </div>

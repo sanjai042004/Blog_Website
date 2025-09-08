@@ -1,12 +1,22 @@
 import { useState } from "react";
 import { parseYouTubeLink } from "../../constant/helper";
 
-export const VideoInput = ({ index, handleChange }) => {
+export const VideoInput = ({ block,index, handleChange }) => {
   const [link, setLink] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
- const handleVideoLink = () => {
-  const embedUrl = parseYouTubeLink(link.trim());
+  const handleVideoLink = () => {
+  const trimmed = link.trim();
+
+  if (!trimmed) {
+    // Empty input → remove the video input
+    handleChange(index, "ui", { ...(block.ui || {}), showVideoInput: false });
+    setLink("");
+    setErrorMessage("");
+    return;
+  }
+
+  const embedUrl = parseYouTubeLink(trimmed);
   if (embedUrl) {
     handleChange(index, "youtubeEmbed", embedUrl);
     setErrorMessage("");
@@ -14,7 +24,9 @@ export const VideoInput = ({ index, handleChange }) => {
     setErrorMessage("Invalid YouTube link. Please try again.");
     handleChange(index, "youtubeEmbed", null);
   }
-  handleChange(index, "showVideoInput", false);
+
+  // Always hide the input after processing
+  handleChange(index, "ui", { ...(block.ui || {}), showVideoInput: false });
   setLink("");
 };
 
@@ -25,7 +37,7 @@ export const VideoInput = ({ index, handleChange }) => {
         type="text"
         value={link}
         onChange={(e) => setLink(e.target.value)}
-        placeholder="Paste YouTube link and press Enter.."
+        placeholder="Paste YouTube link and press Enter..."
         className="w-full border-none outline-none p-2 mb-4 rounded shadow"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
