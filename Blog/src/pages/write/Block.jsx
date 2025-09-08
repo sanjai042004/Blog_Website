@@ -13,6 +13,7 @@ const BlockComponent = ({
   addBlock,
   contentRefs,
   handleFileChange,
+  handleUnsplashSelect
 }) => {
   const fileInputRef = useRef();
 
@@ -134,6 +135,7 @@ const BlockComponent = ({
             block={block}
             index={index}
             handleChange={handleChange}
+            handleUnsplashSelect={handleUnsplashSelect}
           />
         )}
 

@@ -19,8 +19,8 @@ const parseBlocks = (blocks, files) => {
   let fileIndex = 0;
 
   return parsed.map((b) => {
-    if (b.type === "image" && files[fileIndex]) {
-      b.media = `/uploads/${files[fileIndex].filename}`;
+    if (b.type === "image" && b.imageFile && files[fileIndex]) {
+      b.media = `/uploads/${files[fileIndex].filename}`; // permanent URL
       fileIndex++;
     }
     delete b.preview;
@@ -28,6 +28,7 @@ const parseBlocks = (blocks, files) => {
     return b;
   });
 };
+
 
 // CRUD Posts
 const createPost = async (req, res) => {

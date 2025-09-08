@@ -23,12 +23,21 @@ export const parseYouTubeLink = (link) => {
 export const prepareImage = (fileOrUrl, existingMedia = null) => {
   if (!fileOrUrl && !existingMedia) return { preview: null, media: null, imageFile: null };
 
+  // Normal uploaded File
   if (fileOrUrl instanceof File) {
     const preview = URL.createObjectURL(fileOrUrl);
-    return { preview, media: fileOrUrl, imageFile: fileOrUrl };
+    return { preview, media: preview, imageFile: fileOrUrl }; 
   }
 
-  // String URL (Unsplash or direct)
-  const media = fileOrUrl || existingMedia;
-  return { preview: media, media, imageFile: null };
+  // String URL (Unsplash or direct URL)
+  if (typeof fileOrUrl === "string" && fileOrUrl.startsWith("http")) {
+    return { preview: fileOrUrl, media: fileOrUrl, imageFile: null }; 
+  }
+
+  // fallback: existingMedia
+  if (existingMedia) {
+    return { preview: existingMedia, media: existingMedia, imageFile: null };
+  }
+
+  return { preview: null, media: null, imageFile: null };
 };

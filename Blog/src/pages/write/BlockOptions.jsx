@@ -6,7 +6,6 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
   const ui = block.ui || {};
   const expanded = ui.showOptions;
 
-  // Skip if block already has content/media
   if (block.content || block.media || block.youtubeEmbed) return null;
 
   const toggleOptions = () =>
@@ -16,9 +15,9 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
     handleChange(index, "ui", { ...ui, ...updates, showOptions: false });
 
   const buttons = [
-    { Icon: IoImageOutline, action: onUploadClick, hover: "hover:text-green-700" },
-    { Icon: LuFileVideo, action: () => setUI({ showVideoInput: true }), hover: "hover:text-gray-700" },
-    { Icon: TbBrandUnsplash, action: () => setUI({ showUnsplashInput: true }), hover: "hover:text-gray-700" },
+    { Icon: IoImageOutline, action: onUploadClick, hover: "hover:text-green-700 cursor-pointer" },
+    { Icon: LuFileVideo, action: () => setUI({ showVideoInput: true }), hover: "hover:text-gray-700 cursor-pointer" },
+    { Icon: TbBrandUnsplash, action: () => setUI({ showUnsplashInput: true }), hover: "hover:text-gray-700 cursor-pointer" },
   ];
 
   return (
@@ -26,9 +25,9 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
       {/* Toggle Add / Close */}
       <button type="button" onClick={toggleOptions}>
         {expanded ? (
-          <IoCloseCircleOutline className="size-9 text-gray-500 hover:text-red-500 transition" />
+          <IoCloseCircleOutline className="size-9 text-gray-500 hover:text-red-500 transition cursor-pointer" />
         ) : (
-          <IoAddCircleOutline className="size-9 text-gray-300 hover:text-gray-500 transition" />
+          <IoAddCircleOutline className="size-9 text-gray-300 hover:text-gray-500 transition cursor-pointer" />
         )}
       </button>
 

@@ -15,8 +15,9 @@ export const Profile = () => {
     return <p className="text-center mt-20">No user found</p>;
   }
 
-  // Determine image source safely
+  //image source safely
   let profileImageSrc = null;
+  
   if (currentUser.profileImage) {
     if (currentUser.profileImage.startsWith("http")) {
       profileImageSrc = currentUser.profileImage;

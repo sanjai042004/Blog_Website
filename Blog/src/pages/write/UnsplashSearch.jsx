@@ -27,7 +27,7 @@ export const UnsplashSearch = ({ block, index, handleChange, createNextBlock }) 
   };
 
   const handleSelect = (url) => {
-    const updated = prepareImage(url, block?.media || []);
+    const updated = prepareImage(url);
 
     handleChange(index, "media", updated.media);     
     handleChange(index, "preview", updated.preview); 

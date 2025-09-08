@@ -14,7 +14,6 @@ export const Write = () => {
   const imageInputRefs = useRef([]);
   const navigate = useNavigate();
 
-
   const updateBlock = (index, field, value) =>
     setBlocks((prev) =>
       prev.map((b, i) => (i === index ? { ...b, [field]: value } : b))
@@ -26,22 +25,50 @@ export const Write = () => {
   const removeBlock = (index) =>
     setBlocks((prev) => prev.filter((_, i) => i !== index));
 
-  
-  const handleFileChange = (index, file) => {
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    updateBlock(index, "type", "image");
-    updateBlock(index, "preview", preview);
-    updateBlock(index, "media", preview);
-    updateBlock(index, "imageFile", file);
-  };
+const handleFileChange = (index, file) => {
+  if (!file) return;
 
-  const handleUnsplashSelect = (index, url) => {
-    updateBlock(index, "type", "image");
-    updateBlock(index, "preview", url);
-    updateBlock(index, "media", url);
-    updateBlock(index, "imageFile", undefined);
-  };
+  setBlocks((prev) =>
+    prev.map((b, i) => {
+      if (i !== index) return b;
+
+      // Revoke previous object URL if exists
+      if (b.preview && b.imageFile instanceof File) {
+        URL.revokeObjectURL(b.preview);
+      }
+
+      const preview = URL.createObjectURL(file);
+      return {
+        ...b,
+        type: "image",
+        preview,
+        media: preview,
+        imageFile: file,
+      };
+    })
+  );
+};
+
+const handleUnsplashSelect = (index, url) => {
+  setBlocks((prev) =>
+    prev.map((b, i) => {
+      if (i !== index) return b;
+
+      // Revoke previous object URL if exists
+      if (b.preview && b.imageFile instanceof File) {
+        URL.revokeObjectURL(b.preview);
+      }
+
+      return {
+        ...b,
+        type: "image",
+        preview: url,
+        media: url,
+        imageFile: undefined,
+      };
+    })
+  );
+};
 
   // Validation
   const isValid = () => {
@@ -65,7 +92,7 @@ export const Write = () => {
       const formData = new FormData();
       formData.append("title", postTitle);
 
-      const cleanBlocks = blocks.map(({ preview, imageFile, ...rest }) => rest);
+      const cleanBlocks = blocks.map(({ preview, ...rest }) => rest);
       formData.append("blocks", JSON.stringify(cleanBlocks));
 
       blocks.forEach((b) => {
@@ -77,13 +104,12 @@ export const Write = () => {
         withCredentials: true,
       });
 
-      alert("Post created successfully!");
+     
       setPostTitle("");
       setBlocks([newBlock()]);
       navigate(`/home/post/${res.data.post._id}`);
     } catch (err) {
       console.error("Post failed:", err.response?.data || err);
-      alert(err.response?.data?.message || "Failed to create post.");
     } finally {
       setLoading(false);
     }
