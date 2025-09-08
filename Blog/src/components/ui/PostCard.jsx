@@ -20,33 +20,43 @@ export const PostCard = ({ post, formatDate }) => {
 const getPostImage = () => {
   if (!post.blocks || post.blocks.length === 0) return placeholder;
 
-  // Loop through blocks in order
   for (let block of post.blocks) {
+    // YouTube thumbnail
     if (block.youtubeEmbed) {
       const match = block.youtubeEmbed.match(/(?:embed\/|youtu\.be\/)([\w-]+)/);
       if (match) return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
     }
 
-    if (block.type === "image" && block.media && !block.media.startsWith("blob:")) {
+    // Image block
+    if (block.type === "image" && block.media) {
+      // Use full URL as-is (Unsplash) or prepend backend for relative path
       return block.media.startsWith("http") ? block.media : BACKEND_URL + block.media;
     }
   }
-
-  // Fallback to post.image if exists
-  if (post.image) return post.image.startsWith("http") ? post.image : BACKEND_URL + post.image;
 
   return placeholder;
 };
 
 
   // Generate post preview text
-  const getPreview = () => {
-  const text = post.blocks?.find((b) => b.type === "text" && b.content)?.content || "";
-  if (text.length <= 150) return text;
-  const slice = text.slice(0, 120);
-  const lastSpace = slice.lastIndexOf(" ");
-  return slice.slice(0, lastSpace) + "...";
+const getPreview = () => {
+  if (!post.blocks || post.blocks.length === 0) return "";
+
+  for (let block of post.blocks) {
+    // Check text in this block
+    const text = (block.content || block.text)?.trim();
+    if (text) {
+      // Truncate 
+      if (text.length <= 150) return text;
+      const slice = text.slice(0, 90);
+      const lastSpace = slice.lastIndexOf(" ");
+      return lastSpace > 0 ? slice.slice(0, lastSpace) + "..." : slice + "...";
+    }
+  }
+
+  return ""; // No text found in any block
 };
+
 
 
   return (

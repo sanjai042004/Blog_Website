@@ -14,6 +14,9 @@ export const Write = () => {
   const imageInputRefs = useRef([]);
   const navigate = useNavigate();
 
+  
+    // Block Management
+   
   const updateBlock = (index, field, value) =>
     setBlocks((prev) =>
       prev.map((b, i) => (i === index ? { ...b, [field]: value } : b))
@@ -25,52 +28,42 @@ export const Write = () => {
   const removeBlock = (index) =>
     setBlocks((prev) => prev.filter((_, i) => i !== index));
 
-const handleFileChange = (index, file) => {
-  if (!file) return;
+  const handleImageChange = (index, file) => {
+    if (!file) return;
 
-  setBlocks((prev) =>
-    prev.map((b, i) => {
-      if (i !== index) return b;
+    setBlocks((prev) =>
+      prev.map((b, i) => {
+        if (i !== index) return b;
 
-      // Revoke previous object URL if exists
-      if (b.preview && b.imageFile instanceof File) {
-        URL.revokeObjectURL(b.preview);
-      }
+        if (b.preview && b.imageFile instanceof File) {
+          URL.revokeObjectURL(b.preview);
+        }
 
-      const preview = URL.createObjectURL(file);
-      return {
-        ...b,
-        type: "image",
-        preview,
-        media: preview,
-        imageFile: file,
-      };
-    })
-  );
+        const preview = URL.createObjectURL(file);
+        return { ...b, type: "image", preview, media: preview, imageFile: file };
+      })
+    );
+  };
+
+ // Handle Unsplash selection → create new image block
+const handleUnsplashSelect = (url) => {
+  if (!url) return;
+  setBlocks((prev) => [
+    ...prev,
+    {
+      ...newBlock(),
+      type: "image",
+      preview: url,
+      media: url,
+      imageFile: undefined,
+    },
+  ]);
 };
 
-const handleUnsplashSelect = (index, url) => {
-  setBlocks((prev) =>
-    prev.map((b, i) => {
-      if (i !== index) return b;
 
-      // Revoke previous object URL if exists
-      if (b.preview && b.imageFile instanceof File) {
-        URL.revokeObjectURL(b.preview);
-      }
-
-      return {
-        ...b,
-        type: "image",
-        preview: url,
-        media: url,
-        imageFile: undefined,
-      };
-    })
-  );
-};
-
-  // Validation
+  
+    // Validation
+   
   const isValid = () => {
     if (!postTitle.trim()) return alert("Title is required!"), false;
     const hasContent = blocks.some(
@@ -83,28 +76,35 @@ const handleUnsplashSelect = (index, url) => {
     return true;
   };
 
-  // Submit
+  
+    // Submit Post
+   
   const handlePostClick = async () => {
     if (!isValid()) return;
 
     try {
       setLoading(true);
+
+      // Prepare form data
       const formData = new FormData();
       formData.append("title", postTitle);
 
+      // Remove preview (only for frontend use)
       const cleanBlocks = blocks.map(({ preview, ...rest }) => rest);
       formData.append("blocks", JSON.stringify(cleanBlocks));
 
+      // Append images
       blocks.forEach((b) => {
         if (b.imageFile instanceof File) formData.append("images", b.imageFile);
       });
 
+      // Submit to backend
       const res = await api.post("/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
 
-     
+      // Reset and redirect
       setPostTitle("");
       setBlocks([newBlock()]);
       navigate(`/home/post/${res.data.post._id}`);
@@ -115,7 +115,9 @@ const handleUnsplashSelect = (index, url) => {
     }
   };
 
-  // Title Enter → focus first block
+  
+    // UX: Title enter → focus first block
+   
   const handleTitleKey = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -128,6 +130,7 @@ const handleUnsplashSelect = (index, url) => {
       <WriteNavbar onPost={handlePostClick} loading={loading} />
 
       <div className="max-w-5xl mt-8 mx-auto px-6 py-10">
+        {/* Title  */}
         <input
           type="text"
           value={postTitle}
@@ -137,6 +140,7 @@ const handleUnsplashSelect = (index, url) => {
           className="w-full text-5xl font-serif font-bold mb-6 border-none outline-none placeholder-gray-200"
         />
 
+        {/* Blocks */}
         {blocks.map((block, index) => (
           <Block
             key={index}
@@ -148,7 +152,7 @@ const handleUnsplashSelect = (index, url) => {
             addBlock={addBlock}
             contentRefs={contentRefs}
             imageInputRefs={imageInputRefs}
-            handleFileChange={handleFileChange}
+            handleFileChange={handleImageChange}
             handleUnsplashSelect={handleUnsplashSelect}
           />
         ))}

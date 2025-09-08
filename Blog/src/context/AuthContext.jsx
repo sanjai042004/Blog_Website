@@ -13,35 +13,47 @@ export const AuthProvider = ({ children }) => {
   const clearUser = () => setUser(null);
 
   // Fetch profile from backend 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.get("/auth/profile", { withCredentials: true });
-      if (data.success) {
-        const userData = data.user;
-        const formattedUser = {
-          ...userData,
-          profileImage: userData.profileImage
-            ? userData.profileImage.startsWith("http")
-              ? userData.profileImage
-              : `${import.meta.env.VITE_API_URL}${userData.profileImage}`
-            : null,
-        };
-        saveUser(formattedUser);
-        setError(null);
-        return formattedUser;
-      } else {
-        clearUser();
-        return null;
+// Fetch profile from backend 
+const fetchProfile = useCallback(async () => {
+  setLoading(true);
+  try {
+    const { data } = await api.get("/auth/profile", { withCredentials: true });
+
+    if (data.success) {
+      const userData = data.user;
+
+      // Format profile image URL safely
+      let profileImage = null;
+      if (userData.profileImage) {
+        if (/^https?:\/\//.test(userData.profileImage)) {
+          // Already a full URL
+          profileImage = userData.profileImage;
+        } else {
+          // Relative path → prepend VITE_API_URL
+          const baseURL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
+          const imagePath = userData.profileImage.replace(/^\//, "");
+          profileImage = `${baseURL}/${imagePath}`;
+        }
       }
-    } catch {
+
+      const formattedUser = { ...userData, profileImage };
+
+      saveUser(formattedUser);
+      setError(null);
+      return formattedUser;
+    } else {
       clearUser();
-      setError("Session expired. Please log in again.");
       return null;
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  } catch {
+    clearUser();
+    setError("Session expired. Please log in again.");
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   useEffect(() => {
     fetchProfile();
@@ -67,17 +79,17 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = (token) => authRequest("/auth/google", { token });
 
   //Refresh access token 
-  const refreshAccessToken = async () => {
-    try {
-      const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
-      if (data.success) return { ...data, user: await fetchProfile() };
-      clearUser();
-      return { success: false };
-    } catch {
-      clearUser();
-      return { success: false };
+ const refreshAccessToken = async () => {
+  try {
+    const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
+    if (data.success) {
+      return { ...data, user: await fetchProfile() };
     }
-  };
+    return { success: false };
+  } catch {
+    return { success: false }; 
+  }
+};
 
   // logOut
   const logout = async () => {

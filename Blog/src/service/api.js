@@ -1,17 +1,14 @@
-// api.js
 import axios from "axios";
 
-// Axios instance
 export const api = axios.create({
   baseURL: "http://localhost:5000/api",
-  withCredentials: true,
+  withCredentials: true, 
 });
 
-// Token refresh handling
 let isRefreshing = false;
 let requestQueue = [];
 
-// Process queued requests after refresh
+// Queue requests during refresh
 const processQueue = (error, token = null) => {
   requestQueue.forEach(({ resolve, reject }) => {
     if (error) reject(error);
@@ -20,14 +17,14 @@ const processQueue = (error, token = null) => {
   requestQueue = [];
 };
 
-// Attach token to requests
+// Attach access token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Handle responses & refresh token
+// Response interceptor – handle 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -37,7 +34,6 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       if (isRefreshing) {
-        // Queue the request until token is refreshed
         return new Promise((resolve, reject) => {
           requestQueue.push({ resolve, reject });
         }).then((token) => {
@@ -47,7 +43,6 @@ api.interceptors.response.use(
       }
 
       isRefreshing = true;
-
       try {
         const res = await axios.post(
           "http://localhost:5000/api/auth/refresh",
