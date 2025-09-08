@@ -9,11 +9,11 @@ export const WriteNavbar = ({ onPost, isPublishing = false }) => {
       <div className="flex items-center gap-6">
         <Link
           to="/home"
-          className="text-3xl font-extrabold text-black hover:text-blue-900"
+          className="text-3xl font-extrabold"
         >
           CodeVerse
         </Link>
-        <h3 className="text-gray-600">Draft in user</h3>
+        <h3 className="text-gray-600">Draft in {}</h3>
       </div>
 
 

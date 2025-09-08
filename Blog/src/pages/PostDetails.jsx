@@ -1,16 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../service/api";
 import { useAuth } from "../context/AuthContext";
 import socket, { connectSocket, disconnectSocket } from "../service/comment.socket";
-import { PostHeader,CommentSection,PostActions,PostBlocks } from "../components/ui/post";
-
+import { PostHeader, CommentSection, PostActions, PostBlocks } from "../components/ui/post";
 
 export const PostDetail = () => {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
-
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,26 +16,29 @@ export const PostDetail = () => {
   const [clapCount, setClapCount] = useState(0);
   const [userClapped, setUserClapped] = useState(false);
 
-  const fetchPost = useCallback(async () => {
-    try {
-      const res = await api.get(`/posts/${id}`);
-      if (!res.data.success) throw new Error(res.data.message || "Post not found");
+  // Fetch post data
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await api.get(`/posts/${id}`);
+        if (!res.data.success) throw new Error(res.data.message || "Post not found");
 
-      const fetchedPost = res.data.post;
-      setPost(fetchedPost);
-      setComments(fetchedPost.comments || []);
-      setClapCount(fetchedPost.claps?.length || 0);
-      setUserClapped(fetchedPost.claps?.some(c => c.user === currentUser?._id));
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
+        const fetchedPost = res.data.post;
+        setPost(fetchedPost);
+        setComments(fetchedPost.comments || []);
+        setClapCount(fetchedPost.claps?.length || 0);
+        setUserClapped(fetchedPost.claps?.some(c => c.user === currentUser?._id));
+      } catch (err) {
+        setError(err.response?.data?.message || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
   }, [id, currentUser]);
 
-  useEffect(() => { fetchPost(); }, [fetchPost]);
-
-
+  // socket listeners
   useEffect(() => {
     if (!currentUser) return;
     connectSocket();
@@ -48,12 +49,10 @@ export const PostDetail = () => {
       }
     };
 
-    const handleNewClap = (data) => {
-      if (data.postId === id) {
-        setClapCount(data.totalClaps);
-        if (currentUser?._id === data.userId) {
-          setUserClapped(data.action === "added");
-        }
+    const handleNewClap = ({ postId, totalClaps, userId, action }) => {
+      if (postId === id) {
+        setClapCount(totalClaps);
+        if (currentUser?._id === userId) setUserClapped(action === "added");
       }
     };
 

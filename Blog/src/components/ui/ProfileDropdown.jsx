@@ -38,7 +38,6 @@ export const ProfileDropdown = () => {
   const navigate = useNavigate();
   const ref = useRef(null);
 
-  // Close on route change
   useEffect(() => setOpen(false), [location]);
   useClickAway(ref, () => setOpen(false));
 
