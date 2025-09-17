@@ -36,7 +36,7 @@ export  const PostBlocks=({ blocks })=> {
                   : `${import.meta.env.VITE_API_URL}${block.media}`
               }
               alt={block.content || "Post media"}
-              className="w-full h-80 object-cover rounded mb-6"
+              className="w-full h-80 object-contain rounded mb-6"
             />
           )}
 

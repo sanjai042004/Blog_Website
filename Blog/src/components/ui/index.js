@@ -3,4 +3,5 @@ export * from "./ProfileDropdown";
 export * from "./ExploreTopics";
 export * from "./UnsplashGrid";
 export * from "./PostCard";
+export * from "./Avatar";
 

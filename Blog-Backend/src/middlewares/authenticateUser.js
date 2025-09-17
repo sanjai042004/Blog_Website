@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
-// Authenticate with JWT (access token)
+
 const authenticateUser = async (req, res, next) => {
   try {
     const token =

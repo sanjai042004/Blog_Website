@@ -37,16 +37,12 @@ const connectToMongoDB = async () => {
     process.exit(1);
   }
 };
-
-// Routes
 app.use("/api", routes);
 
-// Default route
 app.get("/", (_, res) => {
   res.send("Welcome to Blog Backend");
 });
 
-// Error middleware
 app.use((err, req, res, next) => {
   console.error("🔥 Error middleware:", err.message);
   
@@ -57,7 +53,7 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
 
-// Start server after MongoDB
+
 connectToMongoDB().then(() => {
   server.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

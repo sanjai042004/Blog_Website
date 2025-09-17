@@ -13,7 +13,7 @@ export const WriteNavbar = ({ onPost, isPublishing = false }) => {
         >
           CodeVerse
         </Link>
-        <h3 className="text-gray-600">Draft in {}</h3>
+        {/* <h3 className="text-gray-600">Draft in {}</h3> */}
       </div>
 
 

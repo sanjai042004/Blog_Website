@@ -29,8 +29,6 @@ const parseBlocks = (blocks, files) => {
   });
 };
 
-
-// CRUD Posts
 const createPost = async (req, res) => {
   try {
     const { title, blocks } = req.body;
@@ -115,7 +113,7 @@ const addComment = async (req, res) => {
     const updatedPost = await Post.findById(postId).populate("comments.user", "name profileImage email");
     const comment = updatedPost.comments.at(-1);
 
-    getIO().emit("newComment", comment);
+    getIO().to(postId).emit("newComment", comment);
     res.json({ success: true, comment });
   } catch (err) {
     handleError(res, err);

@@ -98,13 +98,13 @@ const handleUnsplashSelect = (url) => {
         if (b.imageFile instanceof File) formData.append("images", b.imageFile);
       });
 
-      // Submit to backend
+     
       const res = await api.post("/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
 
-      // Reset and redirect
+      // Reset state & navigate to the new post
       setPostTitle("");
       setBlocks([newBlock()]);
       navigate(`/home/post/${res.data.post._id}`);
@@ -116,7 +116,6 @@ const handleUnsplashSelect = (url) => {
   };
 
   
-    // UX: Title enter → focus first block
    
   const handleTitleKey = (e) => {
     if (e.key === "Enter") {

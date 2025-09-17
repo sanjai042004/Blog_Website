@@ -26,9 +26,9 @@ const userSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-     default: "/uploads/default-avatar.png",
     },
-    bio: { type: String, trim: true, default: "" },
+    bio: { type: String, trim: true, maxlength: 300, default: "" },
+    
     authProvider: {
       type: String,
       enum: ["local", "google"],

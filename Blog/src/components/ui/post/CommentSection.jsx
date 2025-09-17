@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../../../service/api";
 import { FaHandsClapping } from "react-icons/fa6";
 import socket from "../../../service/comment.socket";
@@ -23,6 +23,21 @@ export const CommentSection = ({
   const [newComment, setNewComment] = useState("");
   const [visibleComments, setVisibleComments] = useState(5);
 
+  // ✅ Join socket room & listen for new comments
+  useEffect(() => {
+    socket.emit("joinPost", postId);
+
+    socket.on("newComment", (comment) => {
+      setComments((prev) =>
+        prev.some((c) => c._id === comment._id) ? prev : [comment, ...prev]
+      );
+    });
+
+    return () => {
+      socket.off("newComment");
+    };
+  }, [postId, setComments]);
+
   const handleAddComment = async () => {
     if (!currentUser) {
       navigate("/login");
@@ -34,34 +49,26 @@ export const CommentSection = ({
       const res = await api.post(`/posts/${postId}/comments`, {
         text: newComment.trim(),
       });
-      let addedComment = res.data.comment;
-
       setNewComment("");
-      setComments((prev) =>
-        prev.some((c) => c._id === addedComment._id)
-          ? prev
-          : [addedComment, ...prev]
-      );
-
-      socket.emit("newComment", addedComment);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to add comment");
     }
   };
 
   const handleClap = async (commentId) => {
-  try {
-    const res = await api.post(`/posts/${postId}/comments/${commentId}/clap`);
-    setComments(prev =>
-      prev.map(c =>
-        c._id === commentId ? { ...c, claps: Array(res.data.totalClaps).fill("x") } : c
-      )
-    );
-  } catch (err) {
-    alert(err.response?.data?.message || "Failed to clap");
-  }
-};
-
+    try {
+      const res = await api.post(`/posts/${postId}/comments/${commentId}/clap`);
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === commentId
+            ? { ...c, claps: Array(res.data.totalClaps).fill("x") }
+            : c
+        )
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to clap");
+    }
+  };
 
   const handleShowMore = () => {
     setVisibleComments((prev) => (prev === 5 ? comments.length : 5));
@@ -139,8 +146,7 @@ export const CommentSection = ({
               {/* Comment text */}
               <p className="mt-5 text-gray-800 leading-relaxed">{c.text}</p>
 
-              {/* Actions (clap, reply)  */}
-
+              {/* Actions (clap, reply) */}
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <button
                   className="flex items-center gap-1 hover:text-black"

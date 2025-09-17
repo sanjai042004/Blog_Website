@@ -12,8 +12,6 @@ router.post("/google", googleLogin);
 
 router.post("/refresh", refreshToken);
 
-// router.get("/author/:authorId", getAuthorWithPosts);
-
 router.get("/profile", authenticateUser, getProfile);
 
 router.post("/logout", logout);

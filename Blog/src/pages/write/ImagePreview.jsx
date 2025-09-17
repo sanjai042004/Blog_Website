@@ -6,13 +6,13 @@ export const ImagePreview = ({ url, alt = "preview", className = "", onRemove })
       <img
         src={url}
         alt={alt}
-        className={`max-w-3xl w-full rounded-lg shadow ${className}`}
+        className={`w-full max-w-xl rounded-lg${className}`}
         loading="lazy"
       />
       {onRemove && (
         <button
           onClick={onRemove}
-          className="absolute top-2 right-1 bg-white p-1 rounded-full shadow hover:bg-red-100"
+          className="absolute top-2 right-1  p-1 rounded-full cursor-pointer "
           aria-label="Remove image"
         >
           ✕
