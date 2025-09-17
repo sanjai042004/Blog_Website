@@ -26,7 +26,6 @@ export const ProfileDropdown = () => {
 
   return (
     <div className="ml-6 relative hidden sm:flex" ref={ref}>
-      {/* Avatar trigger */}
       <div className="cursor-pointer" 
       onClick={() => setOpen(!open)}
       title="Account"
@@ -38,12 +37,10 @@ export const ProfileDropdown = () => {
       {open && (
         <div className="absolute right-0 top-14 bg-white shadow-md rounded-b-sm w-56 overflow-hidden">
           
-          {/* Profile preview */}
           <NavLink
-            to="/profile"
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50"
-          >
+            to="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
             <Avatar user={user} className="size-10" />
+
             <div className="flex flex-col">
               <span className="font-medium text-gray-800">
                 {user?.name || "Your Name"}
@@ -55,19 +52,16 @@ export const ProfileDropdown = () => {
           </NavLink>
 
           <div>
-            {/* Settings */}
             <NavLink
               to="/settings"
-              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-700"
-            >
+              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-700">
               <TbSettings2 className="size-5"  /> Settings
             </NavLink>
 
-            {/* Logout */}
+            {/* Sign out */}
             <button
               onClick={handleLogout}
-              className="w-full text-left flex items-center border-t border-gray-200  px-4 py-2 text-gray-500 cursor-pointer hover:bg-gray-50"
-            >
+              className="w-full text-left flex items-center border-t border-gray-200  px-4 py-2 text-gray-500 cursor-pointer hover:bg-gray-50">
               Sign out
             </button>
           </div>

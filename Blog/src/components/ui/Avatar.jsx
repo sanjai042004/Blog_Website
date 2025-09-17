@@ -3,7 +3,7 @@ import { IoIosContact } from "react-icons/io";
 export const Avatar = ({ user, size = "w-10 h-10" }) => {
   if (!user) {
     return (
-      <div className={`${size} flex items-center justify-center rounded-full bg-gray-200 text-gray-600`}>
+      <div className={`${size} flex items-center justify-center  rounded-full bg-gray-200 text-gray-600`}>
         <IoIosContact size={20} />
       </div>
     );

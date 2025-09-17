@@ -12,7 +12,7 @@ export const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all posts from backend
+  // Fetch posts on component mount
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -59,8 +59,8 @@ export const Home = () => {
   if (loading) return <p className="text-center mt-20">Loading posts...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen px-4 py-10">
+      <div className="max-w-5xl">
         <h2 className="text-3xl font-bold mb-12 text-center">Latest Posts</h2>
 
         {filteredPosts.length === 0 ? (

@@ -1,5 +1,6 @@
 const User = require("../models/user.model");
 const Post = require("../models/post.model");
+const upload = require("../../uploads/upload");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
@@ -135,4 +136,27 @@ const getAuthorWithPosts = async (req, res) => {
   res.json({ success: true, user: publicUser(user), posts });
 };
 
-module.exports = { register, login, googleLogin, refreshToken, logout, getProfile, getAuthorWithPosts };
+// Update Profile
+
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password ");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const { name, bio } = req.body;
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+
+  
+    if (req.file) {
+      user.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+    res.json({ success: true, user: publicUser(user) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+module.exports = { register, login, googleLogin, refreshToken, logout, getProfile, getAuthorWithPosts,updateProfile };

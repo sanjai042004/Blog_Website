@@ -9,7 +9,7 @@ const buildCookieOptions = () => ({
 });
 
 const createTokens = (user) => ({
-  accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" }),
+  accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "12h" }),
   refreshToken: jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" }),
 });
 
@@ -29,8 +29,10 @@ const publicUser = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
+  bio: user.bio || "",
   profileImage: user.profileImage || "",
   authProvider: user.authProvider,
 });
+
 
 module.exports = { createTokens, attachTokens, clearCookies, publicUser };

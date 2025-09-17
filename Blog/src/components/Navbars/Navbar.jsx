@@ -1,37 +1,25 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { TfiWrite } from "react-icons/tfi";
-import { CiBellOn, CiMenuBurger, CiSearch } from "react-icons/ci";
-import { TbCompass } from "react-icons/tb";
+import { CiSearch, CiMenuBurger, CiBellOn } from "react-icons/ci";
 import { useState, useRef, useEffect } from "react";
 import { useSearch } from "../../context/SearchContext";
 import { ProfileDropdown } from "../ui";
 import axios from "axios";
-import { HiOutlineHome } from "react-icons/hi2";
-import { MdOutlineLocalLibrary, MdOutlineWebStories } from "react-icons/md";
-import { CgProfile } from "react-icons/cg";
+import { TbCompass } from "react-icons/tb";
+import { TfiWrite } from "react-icons/tfi";
 
-export const Navbar = () => {
+export const Navbar = ({ toggleSidebar }) => {
   const { searchTerm, setSearchTerm } = useSearch();
   const [showDropdown, setShowDropdown] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
-  const [menu, setMenu] = useState(true);
   const navigate = useNavigate();
   const searchRef = useRef(null);
 
-  const menuItems = [
-    { name: "Home", link: "/home", icon: <HiOutlineHome className="size-6" /> },
-    { name: "Library", link: "/library", icon: <MdOutlineLocalLibrary className="size-6" /> },
-    { name: "Profile", link: "/profile", icon: <CgProfile className="size-6" /> },
-    { name: "Stories", link: "/stories", icon: <MdOutlineWebStories className="size-6" /> },
-  ];
-
-  // Fetch search suggestions when typing
+  // Fetch search suggestions
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSuggestions([]);
       return;
     }
-
     const delayDebounce = setTimeout(async () => {
       try {
         const res = await axios.get(
@@ -75,35 +63,13 @@ export const Navbar = () => {
 
   return (
     <nav className="flex items-center justify-between px-4 md:px-8 py-2 border-b border-gray-300 sticky top-0 bg-white z-50">
-    
+      {/* Logo + Hamburger */}
       <div className="flex items-center gap-2 text-2xl font-bold text-black">
-        <button
-          className="cursor-pointer"
-          onClick={() => setMenu(!menu)}
-        >
+        <button className="cursor-pointer" onClick={toggleSidebar}>
           <CiMenuBurger />
         </button>
         <NavLink to="/home">CodeVerse</NavLink>
       </div>
-
-      {/* Side menu */}
-      {menu && (
-        <div className="absolute top-full left-0 w-xs min-h-screen bg-gray-50 shadow-md z-40">
-          <ul className="flex flex-col p-4 gap-6">
-            {menuItems.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.link}
-                  className="flex items-center gap-4 text-gray-700 hover:text-black"
-                  onClick={() => setMenu(false)}
-                >
-                  {item.icon} {item.name}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Search */}
       <div className="relative flex-1 mx-4 md:mx-8" ref={searchRef}>
@@ -121,8 +87,8 @@ export const Navbar = () => {
           </div>
         </form>
 
-        {/*dropdown */}
-        {/* {showDropdown && (
+  
+        {showDropdown && (
           <div className="absolute top-full mt-2 left-0 w-full max-w-md bg-white shadow-lg rounded-lg p-2 z-50">
             {searchTerm.trim() === "" ? (
               <div
@@ -148,9 +114,10 @@ export const Navbar = () => {
               ))
             )}
           </div>
-        )} */}
+        )}
       </div>
 
+    
       <ul className="hidden md:flex space-x-6 items-center">
         <li>
           <NavLink
@@ -158,7 +125,7 @@ export const Navbar = () => {
             className="flex gap-2 items-center text-gray-600 hover:text-black text-lg"
             title="Write"
           >
-            <TfiWrite /> Write
+           <TfiWrite /> Write
           </NavLink>
         </li>
         <li>
