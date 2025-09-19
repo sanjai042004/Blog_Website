@@ -6,6 +6,7 @@ import { MainPage } from "../pages/MainPage";
 import { Write } from "../pages/write/Write";
 import { PostDetail } from "../pages/PostDetails";
 import { AuthorPage } from "../pages/AuthorPage";
+import { NotFound } from "../pages/NotFound";
 
 
 export const Router = createBrowserRouter([
@@ -32,6 +33,11 @@ export const Router = createBrowserRouter([
     element: <HomePageLayout />,
     children: [{ index: true, element: <Profile /> }],
   },
+  {
+  path: "*",
+  element: <NotFound />,
+},
+
   {
     path: "/write",
     element: <WriteLayout />,

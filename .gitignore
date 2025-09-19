@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+Blog-Backend/node_modules
 dist
 dist-ssr
 *.local
@@ -24,3 +25,8 @@ uploads
 *.njsproj
 *.sln
 *.sw?
+
+# Environment files
+.env
+Blog/.env
+Blog-Backend/.env

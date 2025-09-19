@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { GoogleLoginButton } from "./GoogleLoginButton";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { IoMailOpenOutline } from "react-icons/io5";
 
 export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
-  const { register } = useAuth(); 
+  const { register } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,39 +56,38 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50"
-      onClick={onClose}>
+      onClick={onClose}
+    >
       <div
         className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full relative animate-fadeIn"
-        onClick={(e) => e.stopPropagation()}>
-      
-        <button onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl">
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 cursor-pointer text-gray-400 hover:text-black text-xl"
+        >
           ✖
         </button>
 
-        <h2 className="text-2xl font-serif text-center mb-6">
+        <h2 className="text-2xl font-serif text-center mb-6 mt-4">
           Join codeVerse.
         </h2>
-
-      
-        <div className="w-full mb-4">
-          <GoogleLoginButton mode="register" />
-        </div>
 
         {!showEmailForm ? (
           <button
             className="w-full border rounded-full py-2 mb-6 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:bg-blue-50 transition"
-            onClick={handleEmailSignUpClick}>
+            onClick={handleEmailSignUpClick}
+          >
             <IoMailOpenOutline /> Sign up with email
           </button>
         ) : (
           <form onSubmit={handleRegister} className="flex flex-col gap-4 mb-6">
             <input
               type="text"
-              placeholder="Name (optional)"
+              placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="border rounded-full py-2 px-4 focus:outline-none"
             />
             <input
               type="email"
@@ -96,7 +95,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="border rounded-full py-2 px-4 focus:outline-none"
             />
             <input
               type="password"
@@ -104,7 +103,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="border rounded-full py-2 px-4 focus:outline-none"
             />
             <button
               type="submit"
@@ -114,12 +113,23 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
               {loading ? "Registering..." : "Sign up"}
             </button>
 
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
             {success && (
               <p className="text-green-600 text-sm text-center">{success}</p>
             )}
+            <div className="my-4 flex items-center">
+              <hr className="flex-grow border-gray-300" />
+              <span className="px-2 text-gray-500 text-sm">or</span>
+              <hr className="flex-grow border-gray-300" />
+            </div>
           </form>
         )}
+
+        <div className="w-full mb-4">
+          <GoogleLoginButton mode="register" />
+        </div>
 
         <p className="text-center text-sm">
           Already have an account?{" "}
@@ -140,7 +150,8 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
           and{" "}
           <a href="#" className="underline">
             Privacy Policy
-          </a>.
+          </a>
+          .
         </p>
       </div>
     </div>

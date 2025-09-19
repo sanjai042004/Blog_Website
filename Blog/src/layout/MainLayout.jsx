@@ -7,6 +7,16 @@ export const MainLayout = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
 
+  const handleSwitchToLogin = () => {
+    setRegisterOpen(false);
+    setLoginOpen(true);
+  };
+
+  const handleSwitchToRegister = () => {
+    setLoginOpen(false);
+    setRegisterOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f6f2] flex flex-col">
       <MainNav
@@ -14,12 +24,23 @@ export const MainLayout = () => {
         onRegisterOpen={() => setRegisterOpen(true)}
       />
 
+      
       <main className="flex-1">
-        <Outlet />
+        <Outlet context={{ onRegisterOpen: () => setRegisterOpen(true) }} />
       </main>
 
-      <Login isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
-      <Register isOpen={registerOpen} onClose={() => setRegisterOpen(false)} />
+      
+      <Login
+        isOpen={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onSwitchToRegister={handleSwitchToRegister}
+      />
+
+      <Register
+        isOpen={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
     </div>
   );
 };
