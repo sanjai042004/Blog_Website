@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context";
+import { useAuth } from "../../context/AuthContext";
 
-export const GoogleLoginButton = () => {
+export const GoogleLoginButton = ({ mode = "login" }) => {
   const navigate = useNavigate();
   const { googleLogin } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -13,11 +13,11 @@ export const GoogleLoginButton = () => {
     setLoading(true);
 
     try {
-      const token = credentialResponse.credential; 
+      const token = credentialResponse.credential;
       const result = await googleLogin(token);
 
       if (result.success) {
-        navigate("/home"); 
+        navigate("/home");
       } else {
         alert(result.message || "Google login failed. Try again.");
       }
@@ -30,15 +30,23 @@ export const GoogleLoginButton = () => {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       {loading ? (
-        <p className="text-gray-600">Logging in with Google...</p>
+        <p className="text-gray-600">
+          {mode === "register"
+            ? "Signing up with Google..."
+            : "Logging in with Google..."}
+        </p>
       ) : (
-        <GoogleLogin
-          onSuccess={handleSuccess}
-          onError={() => alert("Google Login Failed")}
-          useOneTap
-        />
+        <div className="w-[380px] rounded-full border overflow-hidden shadow-lg">
+          <GoogleLogin
+            onSuccess={handleSuccess}
+            onError={() => alert("Google Login Failed")}
+            text={mode === "register" ? "signup_with" : "signin_with"}
+            shape="pill"
+            width="100%" 
+          />
+        </div>
       )}
     </div>
   );

@@ -1,88 +1,146 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import { GoogleLoginButton } from "./GoogleLoginButton";
+import { useNavigate } from "react-router-dom"; 
+import { useAuth } from "../../context/AuthContext";
+import { IoMailOpenOutline } from "react-icons/io5";
 
-export const Register = () => {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
+export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
   const { register } = useAuth(); 
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  if (!isOpen) return null;
+
+  const handleSwitchToLogin = () => {
+    if (typeof onSwitchToLogin === "function") {
+      onClose();
+      onSwitchToLogin();
+    }
+  };
+
+  const handleEmailSignUpClick = () => {
+    setShowEmailForm(true);
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setSuccess("");
+    setLoading(true);
 
-    const result = await register(form.email, form.password); // centralized API call
+    try {
+      const result = await register(name, email, password);
 
-    if (result.success) {
-      navigate("/home");
-    } else {
-      setError(result.message);
+      if (result.success) {
+        setSuccess("Account created successfully!");
+        setTimeout(() => {
+          onClose();
+          navigate("/home");
+        }, 1500);
+      } else {
+        setError(result.message || "Something went wrong");
+      }
+    } catch (err) {
+      setError(err.message || "Failed to register");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
-
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-[500px]">
-        <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50"
+      onClick={onClose}>
+      <div
+        className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full relative animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}>
+      
+        <button onClick={onClose}
+          className="absolute top-3 right-3 text-gray-400 hover:text-black text-xl">
+          ✖
+        </button>
 
-        {error && (
-          <div className="bg-red-100 text-red-600 px-4 py-2 rounded-md mb-4 text-center">
-            {error}
-          </div>
-        )}
+        <h2 className="text-2xl font-serif text-center mb-6">
+          Join codeVerse.
+        </h2>
 
-        <form onSubmit={handleRegister} className="space-y-6">
-          <input
-            type="email"
-            name="email"
-            placeholder="📧 Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="🔒 Password (min 8 chars)"
-            value={form.password}
-            onChange={handleChange}
-            required
-            className="w-full bg-gray-50 px-6 py-3 rounded-md outline-none"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
-          >
-            {loading ? "Creating..." : "Register"}
-          </button>
-        </form>
-
-        <div className="my-4 flex items-center">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-500 text-sm">or</span>
-          <hr className="flex-grow border-gray-300" />
+      
+        <div className="w-full mb-4">
+          <GoogleLoginButton mode="register" />
         </div>
 
-        <GoogleLoginButton />
+        {!showEmailForm ? (
+          <button
+            className="w-full border rounded-full py-2 mb-6 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:bg-blue-50 transition"
+            onClick={handleEmailSignUpClick}>
+            <IoMailOpenOutline /> Sign up with email
+          </button>
+        ) : (
+          <form onSubmit={handleRegister} className="flex flex-col gap-4 mb-6">
+            <input
+              type="text"
+              placeholder="Name (optional)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="border rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-600"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-600 text-white rounded-full py-2 hover:bg-green-700 transition disabled:opacity-50"
+            >
+              {loading ? "Registering..." : "Sign up"}
+            </button>
 
-        <p className="text-center text-sm mt-4">
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {success && (
+              <p className="text-green-600 text-sm text-center">{success}</p>
+            )}
+          </form>
+        )}
+
+        <p className="text-center text-sm">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
-            Login
-          </Link>
+          <button
+            type="button"
+            onClick={handleSwitchToLogin}
+            className="text-green-600 cursor-pointer hover:underline"
+          >
+            Sign in
+          </button>
+        </p>
+
+        <p className="text-xs text-gray-500 text-center mt-4">
+          By clicking “Sign up”, you accept codeVerse’s{" "}
+          <a href="#" className="underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="underline">
+            Privacy Policy
+          </a>.
         </p>
       </div>
     </div>

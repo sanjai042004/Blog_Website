@@ -28,7 +28,15 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     bio: { type: String, trim: true, maxlength: 300, default: "" },
-    
+
+
+    followers: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+    ],
+    following: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+    ],
+
     authProvider: {
       type: String,
       enum: ["local", "google"],

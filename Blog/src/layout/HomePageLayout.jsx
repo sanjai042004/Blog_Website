@@ -5,7 +5,7 @@ import { Sidebar } from "../components/SideBar";
 import { Footer } from "../components/ui";
 
 export const HomePageLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 

@@ -1,6 +1,7 @@
 import { useAuth } from "../../context/AuthContext";
 import { useState } from "react";
 import { ProfileSetting } from "../ProfileSetting";
+import { Avatar } from "../../components/ui/Avatar";
 
 const getProfileImage = (img) => {
   if (!img) return null;
@@ -41,17 +42,7 @@ export const Profile = () => {
 
       {/* Sidebar */}
       <aside className="col-span-5 border-l border-gray-200 hidden md:block text-center">
-        {profileImageSrc ? (
-          <img
-            src={profileImageSrc}
-            alt={user.name}
-            className="w-24 h-24 rounded-full mx-auto object-cover"
-          />
-        ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-300 mx-auto flex items-center justify-center text-gray-500">
-            {user?.name?.charAt(0)}
-          </div>
-        )}
+        <Avatar user={user} size="w-24 h-24 text-2xl mx-auto" />
         <p className="mt-3 font-semibold">{user?.name}</p>
     
         {user?.bio && <p className="mt-1 text-sm text-gray-600">{user.bio}</p>}

@@ -1,31 +1,28 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../service/api";
+import { Avatar } from "../components/ui/Avatar";
 
 export const ProfileSetting = ({ isOpen, onClose }) => {
-  const { user, setUser } = useAuth();
+  const { user, setUser,fetchProfile } = useAuth();
 
-  // Basic fields
-  const [preview, setPreview] = useState(user?.profileImage || null);
+  const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
-  const [name, setName] = useState(user?.name || "");
-  const [bio, setBio] = useState(user?.bio || "");
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Reset form when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setPreview(user?.profileImage || null);
+    if (isOpen && user) {
+      setPreview(user.profileImage || null);
       setFile(null);
-      setName(user?.name || "");
-      setBio(user?.bio || "");
-      
+      setName(user.name || "");
+      setBio(user.bio || "");
     }
   }, [isOpen, user]);
 
   if (!isOpen) return null;
 
-  // Profile image change
   const handleFileChange = (e) => {
     const f = e.target.files[0];
     if (f) {
@@ -33,34 +30,42 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
       setPreview(URL.createObjectURL(f));
     }
   };
+const handleSave = async () => {
+  setLoading(true);
+  try {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("bio", bio);
+    if (file) formData.append("profileImage", file);
 
-  // Save profile
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("bio", bio);
-      if (file) formData.append("profileImage", file);
+    const { data } = await api.put("/auth/profile", formData, {
+      withCredentials: true,
+    });
 
-      const { data } = await api.put("/auth/profile", formData, {
-        withCredentials: true,
-      });
+    if (data.success) {
+      setUser(prev => ({
+        ...prev,
+        name: data.user.name,
+        bio: data.user.bio,
+        profileImage: file ? URL.createObjectURL(file) : data.user.profileImage,
+      }));
 
-      if (data.success) setUser(data.user);
-      onClose();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to update profile.");
-    } finally {
-      setLoading(false);
+      await fetchProfile();
     }
-  };
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "Failed to update profile.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
       onClick={onClose}>
+
       <div className="bg-white rounded-xl shadow-xl p-8 w-[500px] relative animate-fadeIn"
         onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose}
@@ -76,18 +81,15 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
             {preview ? (
               <img
                 src={preview}
-                alt="Profile"
+                alt="Profile Preview"
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl">
-                {user?.name?.charAt(0)}
-              </div>
+              <Avatar user={user} size="w-28 h-28 text-xl" />
             )}
             <label
               htmlFor="fileInput"
-              className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition"
-            >
+              className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
               Update Photo
             </label>
           </div>
@@ -117,12 +119,13 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            rows={3}
-            className="mt-1 w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+            rows={4}
+            placeholder="Tell something about yourself..."
+            className="mt-1 w-full border-none bg-gray-100 rounded-lg px-3 py-2 text-gray-800 outline-none resize-none"
           />
         </div>
 
-         
+        {/* Buttons */}
         <div className="flex gap-2 mt-6">
           <button
             onClick={handleSave}

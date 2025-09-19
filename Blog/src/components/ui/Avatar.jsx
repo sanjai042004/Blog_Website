@@ -1,27 +1,26 @@
+import { useState } from "react";
 import { IoIosContact } from "react-icons/io";
 
-export const Avatar = ({ user, size = "w-10 h-10" }) => {
-  if (!user) {
-    return (
-      <div className={`${size} flex items-center justify-center  rounded-full bg-gray-200 text-gray-600`}>
-        <IoIosContact size={20} />
-      </div>
-    );
-  }
+export const Avatar = ({ user, size = "w-10 h-10 text-sm" }) => {
+  const [imgError, setImgError] = useState(false);
+  const profileImage = user?.profileImage || user?.photoURL || null;
 
-  if (user.profileImage) {
-    return (
-      <img
-        src={user.profileImage}
-        alt={user.name}
-        className={`${size} rounded-full object-cover`}
-      />
-    );
-  }
+  const fallback = user?.name?.charAt(0)?.toUpperCase() || <IoIosContact size={20} />;
 
   return (
-    <div className={`${size} flex items-center justify-center rounded-full bg-green-500 text-white font-bold`}>
-      {user.name?.[0]?.toUpperCase()}
+    <div
+      className={`rounded-full overflow-hidden flex items-center justify-center border bg-indigo-600  text-white ${size}`}
+    >
+      {profileImage && !imgError ? (
+        <img
+          src={profileImage}
+          alt={user?.name || "User"}
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span>{fallback}</span>
+      )}
     </div>
   );
 };

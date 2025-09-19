@@ -9,7 +9,7 @@ const buildCookieOptions = () => ({
 });
 
 const createTokens = (user) => ({
-  accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "12h" }),
+  accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" }),
   refreshToken: jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" }),
 });
 
