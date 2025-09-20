@@ -4,6 +4,8 @@ import { FaRegComment } from "react-icons/fa";
 import { FaHandsClapping } from "react-icons/fa6";
 import { MdSaveAlt } from "react-icons/md";
 import { useMemo } from "react";
+import { AuthorInfo } from "./post/AuthorInfo";
+
 
 export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
   const navigate = useNavigate();
@@ -11,20 +13,13 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
 
   const author = post.author || {};
   const authorId = author._id;
-  const authorName = author.name || "Unknown";
-
-  const authorAvatar = author.profileImage
-    ? author.profileImage.startsWith("http")
-      ? author.profileImage
-      : `${BACKEND_URL}${author.profileImage}`
-    : placeholder; 
 
   const goToAuthor = (e) => {
     e.stopPropagation();
     if (authorId) navigate(`/home/author/${authorId}`);
   };
 
- 
+
   const postImage = useMemo(() => {
     if (!post.blocks?.length) return placeholder;
 
@@ -42,7 +37,7 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
     return placeholder;
   }, [post, BACKEND_URL]);
 
-
+ 
   const previewText = useMemo(() => {
     if (!post.blocks?.length) return "";
     for (let block of post.blocks) {
@@ -64,25 +59,17 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/home/post/${post._id}`)}
     >
-      {/* Author */}
+      
       {!hideAuthor && (
-        <div className="flex items-center gap-3 text-sm mb-2">
-          <img
-            src={authorAvatar}
-            alt={authorName}
-            className="w-6 h-6 rounded-full cursor-pointer"
-            onClick={goToAuthor}
-          />
-          <span
-            onClick={goToAuthor}
-            className="font-medium text-gray-500 hover:underline hover:text-gray-700 cursor-pointer"
-          >
-            {authorName}
-          </span>
-        </div>
+        <AuthorInfo
+          author={author}
+          onClick={goToAuthor}
+          showDate={true}
+          date={post.createdAt ? formatDate(new Date(post.createdAt)) : "Unknown Date"}
+        />
       )}
 
-      {/* Post Content (wrapped in Link) */}
+      
       <Link to={`/home/post/${post._id}`} className="flex flex-row gap-4">
         <div className="flex-1">
           <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 line-clamp-2">
@@ -117,12 +104,11 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
           </span>
         </div>
 
-        {/* Save + Options */}
+       
         <div className="flex items-center gap-4">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: integrate save post API here
               console.log("Saved post:", post._id);
             }}
             className="hover:text-gray-700"

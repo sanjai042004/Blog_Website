@@ -2,7 +2,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../service/api";
 import { useAuth } from "../context/AuthContext";
-import socket, { connectSocket, disconnectSocket } from "../service/comment.socket";
 import { PostHeader, CommentSection, PostActions, PostBlocks } from "../components/ui/post";
 
 export const PostDetail = () => {
@@ -16,7 +15,7 @@ export const PostDetail = () => {
   const [clapCount, setClapCount] = useState(0);
   const [userClapped, setUserClapped] = useState(false);
 
-  // fetch post details
+  // Fetch post details
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -38,33 +37,21 @@ export const PostDetail = () => {
     fetchPost();
   }, [id, currentUser]);
 
-  // socket listeners
-  useEffect(() => {
-    if (!currentUser) return;
-    connectSocket();
+  // Handle post clap
+  const handlePostClap = async () => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
 
-    const handleNewComment = (comment) => {
-      if (comment.post?._id === id) {
-        setComments(prev => prev.some(c => c._id === comment._id) ? prev : [...prev, comment]);
-      }
-    };
-
-    const handleNewClap = ({ postId, totalClaps, userId, action }) => {
-      if (postId === id) {
-        setClapCount(totalClaps);
-        if (currentUser?._id === userId) setUserClapped(action === "added");
-      }
-    };
-
-    socket.on("newComment", handleNewComment);
-    socket.on("newClap", handleNewClap);
-
-    return () => {
-      socket.off("newComment", handleNewComment);
-      socket.off("newClap", handleNewClap);
-      disconnectSocket();
-    };
-  }, [id, currentUser]);
+    try {
+      const res = await api.post(`/posts/${id}/clap`);
+      setClapCount(res.data.totalClaps);
+      setUserClapped(res.data.action === "added");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to clap");
+    }
+  };
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
   if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
@@ -92,6 +79,7 @@ export const PostDetail = () => {
           userClapped={userClapped}
           setClapCount={setClapCount}
           setUserClapped={setUserClapped}
+          handleClap={handlePostClap}
           currentUser={currentUser}
           navigate={navigate}
         />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { MainNav } from "../components/Navbars/MainNav";
 import { Login, Register } from "../pages/user";
+import { Footer } from "../components/ui";
 
 export const MainLayout = () => {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -41,6 +42,8 @@ export const MainLayout = () => {
         onClose={() => setRegisterOpen(false)}
         onSwitchToLogin={handleSwitchToLogin}
       />
+
+      <Footer />
     </div>
   );
 };

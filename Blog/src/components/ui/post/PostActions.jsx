@@ -2,17 +2,8 @@ import { FaRegCommentDots } from "react-icons/fa";
 import { FaHandsClapping } from "react-icons/fa6";
 import { BsBookmark, BsShare, BsThreeDots } from "react-icons/bs";
 import { api } from "../../../service/api";
-import socket from "../../../service/comment.socket";
 
-export const PostActions = ({
-  postId,
-  clapCount,
-  userClapped,
-  setClapCount,
-  setUserClapped,
-  currentUser,
-  navigate,
-}) => {
+export const PostActions = ({postId,clapCount,userClapped,setClapCount,setUserClapped,currentUser,navigate,}) => {
   const handleClap = async () => {
     if (!currentUser) {
       navigate("/login");
@@ -23,21 +14,15 @@ export const PostActions = ({
       const res = await api.post(`/posts/${postId}/clap`);
       setClapCount(res.data.totalClaps);
       setUserClapped(res.data.action === "added");
-
-      socket.emit("newClap", {
-        postId,
-        action: res.data.action,
-        userId: currentUser?._id,
-        totalClaps: res.data.totalClaps,
-      });
     } catch (err) {
       console.error("Clap error:", err);
+      alert(err.response?.data?.message || "Failed to clap");
     }
   };
 
   return (
     <div className="flex items-center justify-between border-t border-b border-gray-200 py-4 mb-12">
-      {/* Left actions (clap + comments) */}
+    
       <div className="flex items-center gap-8 text-gray-600">
         {/* Clap */}
         <button
@@ -57,7 +42,7 @@ export const PostActions = ({
         </button>
       </div>
 
-      {/* Right actions (bookmark, share, more) */}
+      
       <div className="flex items-center gap-6 text-gray-600">
         <button className="hover:text-black transition-colors">
           <BsBookmark className="size-5" />

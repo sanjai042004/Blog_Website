@@ -4,7 +4,7 @@ import { api } from "../service/api";
 import { Avatar } from "../components/ui/Avatar";
 
 export const ProfileSetting = ({ isOpen, onClose }) => {
-  const { user, setUser,fetchProfile } = useAuth();
+  const { user, fetchProfile } = useAuth();
 
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
@@ -21,55 +21,61 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
     }
   }, [isOpen, user]);
 
+ 
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith("")) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
     const f = e.target.files[0];
     if (f) {
       setFile(f);
-      setPreview(URL.createObjectURL(f));
+      const url = URL.createObjectURL(f);
+      setPreview(url);
     }
   };
-const handleSave = async () => {
-  setLoading(true);
-  try {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("bio", bio);
-    if (file) formData.append("profileImage", file);
 
-    const { data } = await api.put("/auth/profile", formData, {
-      withCredentials: true,
-    });
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("bio", bio);
+      if (file) formData.append("profileImage", file);
 
-    if (data.success) {
-      setUser(prev => ({
-        ...prev,
-        name: data.user.name,
-        bio: data.user.bio,
-        profileImage: file ? URL.createObjectURL(file) : data.user.profileImage,
-      }));
+      const { data } = await api.put("/auth/profile", formData, {
+        withCredentials: true,
+      });
 
-      await fetchProfile();
+      if (data.success) {
+        await fetchProfile(); // ✅ Always fetch fresh profile from server
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to update profile.");
+    } finally {
+      setLoading(false);
     }
-    onClose();
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.message || "Failed to update profile.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
-      onClick={onClose}>
-
-      <div className="bg-white rounded-xl shadow-xl p-8 w-[500px] relative animate-fadeIn"
-        onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-xl p-8 w-[500px] relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+        >
           ✖
         </button>
 
@@ -89,7 +95,8 @@ const handleSave = async () => {
             )}
             <label
               htmlFor="fileInput"
-              className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
+              className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition"
+            >
               Update Photo
             </label>
           </div>

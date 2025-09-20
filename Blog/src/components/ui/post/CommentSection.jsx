@@ -1,15 +1,9 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "../../../service/api";
 import { FaHandsClapping } from "react-icons/fa6";
-import socket from "../../../service/comment.socket";
+import { Avatar } from "../Avatar";
 
-const userProfile = (user) => {
-  if (!user?.profileImage) return "/placeholder-user.png";
-  return user.profileImage.startsWith("http")
-    ? user.profileImage
-    : `${import.meta.env.VITE_API_URL}${user.profileImage}`;
-};
 
 const userName = (user) => user?.name || "Unknown";
 
@@ -23,21 +17,7 @@ export const CommentSection = ({
   const [newComment, setNewComment] = useState("");
   const [visibleComments, setVisibleComments] = useState(5);
 
-  // ✅ Join socket room & listen for new comments
-  useEffect(() => {
-    socket.emit("joinPost", postId);
-
-    socket.on("newComment", (comment) => {
-      setComments((prev) =>
-        prev.some((c) => c._id === comment._id) ? prev : [comment, ...prev]
-      );
-    });
-
-    return () => {
-      socket.off("newComment");
-    };
-  }, [postId, setComments]);
-
+  // Add Comment
   const handleAddComment = async () => {
     if (!currentUser) {
       navigate("/login");
@@ -49,15 +29,20 @@ export const CommentSection = ({
       const res = await api.post(`/posts/${postId}/comments`, {
         text: newComment.trim(),
       });
+
+      // Update local state manually
+      setComments((prev) => [res.data.comment, ...prev]);
       setNewComment("");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to add comment");
     }
   };
 
+  // Clap Comment
   const handleClap = async (commentId) => {
     try {
       const res = await api.post(`/posts/${postId}/comments/${commentId}/clap`);
+
       setComments((prev) =>
         prev.map((c) =>
           c._id === commentId
@@ -70,6 +55,7 @@ export const CommentSection = ({
     }
   };
 
+  // Show More / Less
   const handleShowMore = () => {
     setVisibleComments((prev) => (prev === 5 ? comments.length : 5));
   };
@@ -79,11 +65,7 @@ export const CommentSection = ({
       {currentUser ? (
         <div className="flex items-center gap-3 mb-6">
           <Link to={`/author/${currentUser._id}`}>
-            <img
-              src={userProfile(currentUser)}
-              alt={userName(currentUser)}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+            <Avatar user={currentUser} size="w-10 h-10" />
           </Link>
           <p className="font-bold">{userName(currentUser)}</p>
         </div>
@@ -121,13 +103,8 @@ export const CommentSection = ({
               key={c._id || `${c.user?._id || "nouser"}-${index}`}
               className="border-b border-gray-200 pb-4"
             >
-              {/* User row */}
               <div className="flex items-center gap-3">
-                <img
-                  src={userProfile(c.user)}
-                  alt={userName(c.user)}
-                  className="w-9 h-9 rounded-full object-cover"
-                />
+                <Avatar user={c.user} size="w-9 h-9 text-xs" />
                 <div>
                   <p className="font-semibold text-gray-900">
                     {userName(c.user)}
@@ -143,10 +120,8 @@ export const CommentSection = ({
                 </div>
               </div>
 
-              {/* Comment text */}
               <p className="mt-5 text-gray-800 leading-relaxed">{c.text}</p>
 
-              {/* Actions (clap, reply) */}
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <button
                   className="flex items-center gap-1 hover:text-black"
@@ -160,7 +135,6 @@ export const CommentSection = ({
           ))
         )}
 
-        {/* Show More button */}
         {comments.length > 5 && (
           <button
             onClick={handleShowMore}

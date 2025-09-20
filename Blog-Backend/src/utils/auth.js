@@ -1,30 +1,34 @@
-// utils/auth.js
 const jwt = require("jsonwebtoken");
 
-const buildCookieOptions = () => ({
-  httpOnly: true,
+// ✅ Default cookie options
+const cookieOptions = {
+  httpOnly: true, 
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
   path: "/",
-});
+};
 
-const createTokens = (user) => ({
-  accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" }),
-  refreshToken: jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" }),
-});
+// ✅ Generate access and refresh tokens
+const createTokens = (user) => {
+  return {
+    accessToken: jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" }),
+    refreshToken: jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" }),
+  };
+};
 
+// ✅ Set tokens in cookies
 const attachTokens = (res, tokens) => {
-  const opts = buildCookieOptions();
-  res.cookie("accessToken", tokens.accessToken, { ...opts, maxAge: 3600000 });
-  res.cookie("refreshToken", tokens.refreshToken, { ...opts, maxAge: 7 * 24 * 60 * 60 * 1000 });
+  res.cookie("accessToken", tokens.accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); // 1 hour
+  res.cookie("refreshToken", tokens.refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
 };
 
+// ✅ Remove tokens from cookies
 const clearCookies = (res) => {
-  const opts = buildCookieOptions();
-  res.clearCookie("accessToken", opts);
-  res.clearCookie("refreshToken", opts);
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
 };
 
+// ✅ Safe user data to send to client
 const publicUser = (user) => ({
   id: user._id,
   name: user.name,
@@ -32,7 +36,12 @@ const publicUser = (user) => ({
   bio: user.bio || "",
   profileImage: user.profileImage || "",
   authProvider: user.authProvider,
+  role: user.role,
 });
 
-
-module.exports = { createTokens, attachTokens, clearCookies, publicUser };
+module.exports = {
+  createTokens,
+  attachTokens,
+  clearCookies,
+  publicUser,
+};

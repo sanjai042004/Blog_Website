@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const api = axios.create({
   baseURL: "http://localhost:5000/api",
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -30,7 +30,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // ✅ skip retry if it's already retried or if it's the refresh request itself
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/refresh")
+    ) {
       originalRequest._retry = true;
 
       if (isRefreshing) {
@@ -44,13 +49,10 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        const res = await axios.post(
-          "http://localhost:5000/api/auth/refresh",
-          {},
-          { withCredentials: true }
-        );
-
+        // ✅ use api instance (not hardcoded axios)
+        const res = await api.post("/auth/refresh", {});
         const newToken = res.data.accessToken;
+
         localStorage.setItem("accessToken", newToken);
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
 

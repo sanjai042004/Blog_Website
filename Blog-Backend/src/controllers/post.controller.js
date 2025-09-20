@@ -1,5 +1,4 @@
 const Post = require("../models/post.model");
-const { getIO } = require("../socket/socket");
 
 // Helpers
 const handleError = (res, err, code = 500) => {
@@ -20,7 +19,7 @@ const parseBlocks = (blocks, files) => {
 
   return parsed.map((b) => {
     if (b.type === "image" && b.imageFile && files[fileIndex]) {
-      b.media = `/uploads/${files[fileIndex].filename}`; // permanent URL
+      b.media = `/uploads/${files[fileIndex].filename}`;
       fileIndex++;
     }
     delete b.preview;
@@ -29,6 +28,7 @@ const parseBlocks = (blocks, files) => {
   });
 };
 
+// Create Post
 const createPost = async (req, res) => {
   try {
     const { title, blocks } = req.body;
@@ -50,6 +50,7 @@ const createPost = async (req, res) => {
   }
 };
 
+// Get Posts
 const getPosts = async (req, res) => {
   try {
     const posts = await Post.find().populate("author", "name profileImage email").sort({ createdAt: -1 });
@@ -59,6 +60,7 @@ const getPosts = async (req, res) => {
   }
 };
 
+// Get Post by ID
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
@@ -74,6 +76,7 @@ const getPostById = async (req, res) => {
   }
 };
 
+// Update Post
 const updatePost = async (req, res) => {
   try {
     const post = await findPost(req.params.id, req.user.id);
@@ -89,6 +92,7 @@ const updatePost = async (req, res) => {
   }
 };
 
+// Delete Post
 const deletePost = async (req, res) => {
   try {
     await findPost(req.params.id, req.user.id);
@@ -99,7 +103,7 @@ const deletePost = async (req, res) => {
   }
 };
 
-// Comments
+// Add Comment
 const addComment = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -113,15 +117,14 @@ const addComment = async (req, res) => {
     const updatedPost = await Post.findById(postId).populate("comments.user", "name profileImage email");
     const comment = updatedPost.comments.at(-1);
 
-    getIO().to(postId).emit("newComment", comment);
     res.json({ success: true, comment });
   } catch (err) {
     handleError(res, err);
   }
 };
 
-// Claps
-const toggleClap = async (array, userId) => {
+// Claps Helper
+const toggleClap = (array, userId) => {
   const index = array.findIndex((u) => u.toString() === userId);
   if (index > -1) {
     array.splice(index, 1);
@@ -132,18 +135,12 @@ const toggleClap = async (array, userId) => {
   }
 };
 
+// Clap Post
 const clapPost = async (req, res) => {
   try {
     const post = await findPost(req.params.id);
     const action = toggleClap(post.claps, req.user.id);
     await post.save();
-
-    getIO().to(post._id.toString()).emit("clapUpdate", {
-      postId: post._id,
-      totalClaps: post.claps.length,
-      action,
-      user: req.user.id,
-    });
 
     res.json({ success: true, action, totalClaps: post.claps.length });
   } catch (err) {
@@ -151,6 +148,7 @@ const clapPost = async (req, res) => {
   }
 };
 
+// Clap Comment
 const clapComment = async (req, res) => {
   try {
     const { postId, commentId } = req.params;
@@ -160,7 +158,7 @@ const clapComment = async (req, res) => {
     const comment = post.comments.id(commentId);
     if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
 
-    const action = await toggleClap(comment.claps, userId);
+    const action = toggleClap(comment.claps, userId);
     await post.save();
 
     res.json({ success: true, action, totalClaps: comment.claps.length });

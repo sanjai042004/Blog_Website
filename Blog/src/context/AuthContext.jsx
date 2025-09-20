@@ -1,15 +1,23 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { api } from "../service/api";
 
 const AuthContext = createContext();
 
-//Format profile image URLs 
-const formatProfileImage = (img) => {
+// Format profile image URLs
+const formatProfileImage = (img, bustCache = false) => {
   if (!img) return null;
   if (/^https?:\/\//.test(img)) return img;
+
   const baseURL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
   const imagePath = img.replace(/^\//, "");
-  return `${baseURL}/${imagePath}?t=${Date.now()}`;
+  return `${baseURL}/${imagePath}${bustCache ? `?t=${Date.now()}` : ""}`;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -22,9 +30,19 @@ export const AuthProvider = ({ children }) => {
   const clearUser = () => setUser(null);
 
   // Centralized user state update
-  const updateUserState = (userData) => {
-    if (!userData) return clearUser();
-    const formattedUser = { ...userData, profileImage: formatProfileImage(userData.profileImage) };
+  const updateUserState = (userData, bustCache = false) => {
+    if (!userData) {
+      clearUser();
+      return null;
+    }
+
+    const formattedUser = {
+      ...userData,
+      profileImage: /^https?:\/\//.test(userData.profileImage)
+        ? userData.profileImage
+        : formatProfileImage(userData.profileImage, bustCache),
+    };
+
     setUser(formattedUser);
     setError(null);
     return formattedUser;
@@ -34,37 +52,72 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/auth/profile", { withCredentials: true });
+      const { data } = await api.get("/auth/profile", {
+        withCredentials: true,
+      });
       if (data.success) return updateUserState(data.user);
       clearUser();
       return null;
-    } catch {
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Session expired. Please log in again.";
+      setError(msg);
       clearUser();
-      setError("Session expired. Please log in again.");
       return null;
     } finally {
       setLoading(false);
     }
   }, []);
 
+  
   useEffect(() => {
+    const cachedUser = localStorage.getItem("authUser");
+    if (cachedUser) {
+      try {
+        const parsed = JSON.parse(cachedUser);
+        setUser(parsed);
+        setLoading(false); 
+      } catch {
+        localStorage.removeItem("authUser");
+      }
+    }
     fetchProfile();
   }, [fetchProfile]);
+
+  // Keep user synced with localStorage
+  useEffect(() => {
+    if (user) localStorage.setItem("authUser", JSON.stringify(user));
+    else localStorage.removeItem("authUser");
+  }, [user]);
 
   // Generic auth request (register/login/google)
   const authRequest = async (endpoint, payload) => {
     try {
-      const { data } = await api.post(endpoint, payload, { withCredentials: true });
-      if (data.success) return { success: true, user: await fetchProfile() };
+      const { data } = await api.post(endpoint, payload, {
+        withCredentials: true,
+      });
+
+      if (data.success) {
+        if (data.user) {
+          return { success: true, user: updateUserState(data.user, true) };
+        }
+        return { success: true, user: await fetchProfile() };
+      }
+
       return { success: false, message: data.message };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || err.message };
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
     }
   };
 
   // Auth actions
-  const register = (name,email, password) => authRequest("/auth/register", { name,email, password });
-  const login = (email, password) => authRequest("/auth/login", { email, password });
+  const register = (name, email, password) =>
+    authRequest("/auth/register", { name, email, password });
+  const login = (email, password) =>
+    authRequest("/auth/login", { email, password });
   const googleLogin = (token) => authRequest("/auth/google", { token });
 
   // Refresh access token
@@ -91,21 +144,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+ 
+  const value = useMemo(
+    () => ({
+      user,
+      setUser: saveUser,
+      register,
+      login,
+      googleLogin,
+      refreshAccessToken,
+      logout,
+      fetchProfile,
+      loading,
+      error,
+    }),
+    [user, loading, error]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser: saveUser,
-        register,
-        login,
-        googleLogin,
-        refreshAccessToken,
-        logout,
-        fetchProfile,
-        loading,
-        error,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
