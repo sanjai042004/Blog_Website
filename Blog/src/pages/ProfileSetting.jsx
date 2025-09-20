@@ -52,7 +52,7 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
       });
 
       if (data.success) {
-        await fetchProfile(); // ✅ Always fetch fresh profile from server
+        await fetchProfile(); 
         onClose();
       }
     } catch (err) {

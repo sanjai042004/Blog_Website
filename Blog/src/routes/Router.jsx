@@ -9,6 +9,7 @@ import { AuthorPage } from "../pages/AuthorPage";
 import { NotFound } from "../pages/NotFound";
 
 
+
 export const Router = createBrowserRouter([
   {
     path: "/",
@@ -25,7 +26,9 @@ export const Router = createBrowserRouter([
       { path: "explore", element: <ExplorePage /> },
       { path: "about", element: <About /> },
       { path: "post/:id", element: <PostDetail /> },
-      {path:"author/:authorId", element:<AuthorPage/>}
+      {path:"author/:authorId", element:<AuthorPage/>},
+      
+
     ],
   },
   {

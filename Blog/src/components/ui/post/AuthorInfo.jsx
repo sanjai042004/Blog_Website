@@ -19,7 +19,7 @@ export const AuthorInfo = ({ author, onClick, showDate = false, date }) => {
         onClick={onClick}
       />
 
-      {/* Name + Date */}
+  
       <div className="flex flex-col">
         <span
           className="font-medium text-gray-700 hover:underline cursor-pointer"

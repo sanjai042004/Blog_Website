@@ -1,10 +1,10 @@
-import placeholder from "../../assets/placeholder.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import { FaRegComment } from "react-icons/fa";
 import { FaHandsClapping } from "react-icons/fa6";
 import { MdSaveAlt } from "react-icons/md";
 import { useMemo } from "react";
 import { AuthorInfo } from "./post/AuthorInfo";
+import { getPostImage, getPreviewText } from "../../utilis/postUtilis";
 
 
 export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
@@ -19,38 +19,8 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
     if (authorId) navigate(`/home/author/${authorId}`);
   };
 
-
-  const postImage = useMemo(() => {
-    if (!post.blocks?.length) return placeholder;
-
-    for (let block of post.blocks) {
-      if (block.youtubeEmbed) {
-        const match = block.youtubeEmbed.match(/(?:embed\/|youtu\.be\/)([\w-]+)/);
-        if (match) return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
-      }
-      if (block.type === "image" && block.media) {
-        return block.media.startsWith("http")
-          ? block.media
-          : BACKEND_URL + block.media;
-      }
-    }
-    return placeholder;
-  }, [post, BACKEND_URL]);
-
- 
-  const previewText = useMemo(() => {
-    if (!post.blocks?.length) return "";
-    for (let block of post.blocks) {
-      const text = (block.content || block.text)?.trim();
-      if (text) {
-        if (text.length <= 150) return text;
-        const slice = text.slice(0, 100);
-        const lastSpace = slice.lastIndexOf(" ");
-        return lastSpace > 0 ? slice.slice(0, lastSpace) + "..." : slice + "...";
-      }
-    }
-    return "";
-  }, [post]);
+  const postImage = useMemo(() => getPostImage(post, BACKEND_URL), [post, BACKEND_URL]);
+  const previewText = useMemo(() => getPreviewText(post), [post]);
 
   return (
     <div
@@ -59,7 +29,6 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/home/post/${post._id}`)}
     >
-      
       {!hideAuthor && (
         <AuthorInfo
           author={author}
@@ -69,7 +38,7 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
         />
       )}
 
-      
+      {/* Post Body */}
       <Link to={`/home/post/${post._id}`} className="flex flex-row gap-4">
         <div className="flex-1">
           <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 line-clamp-2">
@@ -97,14 +66,13 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
             {post.createdAt ? formatDate(new Date(post.createdAt)) : "Unknown Date"}
           </span>
           <span className="flex items-center gap-1">
-            <FaHandsClapping /> {post.claps || 0}
+            <FaHandsClapping /> 
           </span>
           <span className="flex items-center gap-1">
             <FaRegComment /> {post.comments?.length || 0}
           </span>
         </div>
 
-       
         <div className="flex items-center gap-4">
           <button
             onClick={(e) => {

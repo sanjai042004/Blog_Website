@@ -1,150 +1,83 @@
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { api } from "../service/api";
+import { useParams, useNavigate } from "react-router-dom";
 import { PostCard } from "../components/ui/PostCard";
 import { useAuth } from "../context/AuthContext";
+import { useAuthor } from "./hooks/useAuthor";
+import { formatDate, getProfileImage } from "../utilis/utilis";
+
 
 export const AuthorPage = () => {
   const { authorId } = useParams();
   const { user: authUser } = useAuth();
+  const navigate = useNavigate();
 
-  const [author, setAuthor] = useState(null);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
-
-  // Helper to get full profile image URL
-  const getProfileImage = useCallback((img) => {
-    if (!img) return null;
-    if (img.startsWith("http://") || img.startsWith("https://")) return img;
-    if (img.startsWith("//")) return `https:${img}`;
-    return `${import.meta.env.VITE_API_URL}/${img.replace(/^\//, "")}`;
-  }, []);
-
-  // Fetch author data
-  const fetchAuthor = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await api.get(`/users/author/${authorId}`);
-      if (!res.data.success) throw new Error(res.data.message || "Author not found");
-
-      const fetchedAuthor = res.data.user;
-      setAuthor(fetchedAuthor);
-      setPosts(res.data.posts || []);
-      setIsFollowing(
-        authUser
-          ? fetchedAuthor.followers?.some(f => f._id === authUser._id)
-          : false
-      );
-
-      setError("");
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [authorId, authUser]);
-
-  // Toggle follow/unfollow
-  const toggleFollow = async () => {
-    if (!authUser) return alert("Please log in to follow users.");
-    if (!author) return;
-
-    const action = isFollowing ? "unfollow" : "follow";
-
-    try {
-      const res = await api.post(`/follow/${action}/${authorId}`);
-      if (!res.data.success) throw new Error(res.data.message || "Something went wrong");
-
-      setIsFollowing(!isFollowing);
-
-      setAuthor(prev => {
-        if (!prev) return prev;
-        const followers = prev.followers ? [...prev.followers] : [];
-
-        if (action === "follow") {
-          if (!followers.some(f => f._id === authUser._id)) {
-            followers.push({
-              _id: authUser._id,
-              name: authUser.name,
-              profileImage: authUser.profileImage || "",
-            });
-          }
-        } else {
-          const index = followers.findIndex(f => f._id === authUser._id);
-          if (index > -1) followers.splice(index, 1);
-        }
-
-        return { ...prev, followers };
-      });
-
-    } catch (err) {
-      console.error("Follow error:", err);
-      alert(err.response?.data?.message || err.message || "Something went wrong");
-    }
-  };
-
-  useEffect(() => {
-    fetchAuthor();
-  }, [fetchAuthor]);
-
-  const formatDate = (date) => new Date(date).toLocaleDateString();
+  const { author, posts, loading, error, isFollowing, toggleFollow } =
+    useAuthor(authorId, authUser);
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
   if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
 
   const profileImageSrc = getProfileImage(author?.profileImage);
+  const authUserId = String(authUser?._id || authUser?.id || "");
+  const authorIdStr = String(author?._id || "");
+  const showFollowButton = authUser && author && authorIdStr !== authUserId;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      {/* Author Info */}
-      <div className="flex items-center gap-4 mb-4">
-        {profileImageSrc ? (
-          <img
-            src={profileImageSrc}
-            alt={author?.name || "Author"}
-            className="w-16 h-16 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 border">
-            {author?.name?.charAt(0) || "?"}
-          </div>
-        )}
+    <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+      {/* Profile Section */}
+      <div className="md:row-span-1 order-1 md:order-2">
+        <div className="p-6 border-l min-h-screen border-gray-200 sticky top-20 bg-white">
+          {profileImageSrc ? (
+            <img
+              src={profileImageSrc}
+              alt={author?.name || "Author"}
+              className="w-28 h-28 rounded-full object-cover mx-auto mb-4"
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 mx-auto mb-4">
+              {author?.name?.charAt(0) || "?"}
+            </div>
+          )}
 
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">{author.name}</h1>
-          {author.bio && <p className="text-gray-600 mt-1">{author.bio}</p>}
-          <p className="text-sm text-gray-500 mt-1">
-            Followers: {author.followers?.length || 0} | Following: {author.following?.length || 0}
+          <h1 className="text-xl font-bold text-center">{author.name}</h1>
+          {author.bio && <p className="text-gray-600 text-sm mt-2 text-center">{author.bio}</p>}
+
+          <p className="text-sm text-gray-500 text-center mt-2">
+            <button
+              onClick={() => navigate(`/followers/${author._id}`)}
+              className="underline hover:text-black"
+            >
+              {author.followers?.length || 0} Followers
+            </button>
           </p>
-        </div>
 
-        {authUser && author._id !== authUser._id && (
-          <button
-            onClick={toggleFollow}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-              isFollowing
-                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            {isFollowing ? "Unfollow" : "Follow"}
-          </button>
-        )}
+          {showFollowButton && (
+            <button
+              onClick={toggleFollow}
+              className={`mt-4 w-full py-2 rounded-md text-sm font-medium transition ${
+                isFollowing
+                  ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-black text-white hover:bg-gray-800"
+              }`}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Posts */}
-      <h2 className="text-xl font-semibold mb-4">Posts by {author.name}</h2>
-      {posts.length === 0 ? (
-        <p className="text-gray-500">No posts yet.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-7">
-          {posts.map((post) => (
+      {/* Posts Section */}
+      <div className="flex md:col-span-2 order-2 md:order-1 flex-col space-y-8">
+        <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
+          Posts by {author.name}
+        </h2>
+        {posts.length === 0 ? (
+          <p className="text-gray-500">No posts yet.</p>
+        ) : (
+          posts.map((post) => (
             <PostCard key={post._id} post={post} formatDate={formatDate} hideAuthor />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };
