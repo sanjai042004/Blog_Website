@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { useAuthor } from "./hooks/useAuthor";
 import { formatDate, getProfileImage } from "../utilis/utilis";
 
-
 export const AuthorPage = () => {
   const { authorId } = useParams();
   const { user: authUser } = useAuth();
@@ -25,28 +24,33 @@ export const AuthorPage = () => {
     <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-10">
       {/* Profile Section */}
       <div className="md:row-span-1 order-1 md:order-2">
-        <div className="p-6 border-l min-h-screen border-gray-200 sticky top-20 bg-white">
+        <div className="p-6 border-l md:min-h-screen border-gray-200 sticky top-20 bg-white">
           {profileImageSrc ? (
             <img
               src={profileImageSrc}
-              alt={author?.name || "Author"}
+              alt={author?.name || "Unknown Author"}
               className="w-28 h-28 rounded-full object-cover mx-auto mb-4"
             />
           ) : (
-            <div className="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 mx-auto mb-4">
-              {author?.name?.charAt(0) || "?"}
+            <div className="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center font-bold text-2xl text-gray-500 mx-auto mb-4">
+              {author?.name?.charAt(0).toUpperCase() || "?"}
             </div>
           )}
 
-          <h1 className="text-xl font-bold text-center">{author.name}</h1>
-          {author.bio && <p className="text-gray-600 text-sm mt-2 text-center">{author.bio}</p>}
+          <h1 className="text-xl font-bold text-center">
+            {author?.name || "Unknown Author"}
+          </h1>
+
+          {author?.bio && (
+            <p className="text-gray-600 text-sm mt-2 text-center">{author.bio}</p>
+          )}
 
           <p className="text-sm text-gray-500 text-center mt-2">
             <button
-              onClick={() => navigate(`/followers/${author._id}`)}
+              onClick={() => author?._id && navigate(`/followers/${author._id}`)}
               className="underline hover:text-black"
             >
-              {author.followers?.length || 0} Followers
+              {author?.followers?.length || 0} Followers
             </button>
           </p>
 
@@ -68,8 +72,9 @@ export const AuthorPage = () => {
       {/* Posts Section */}
       <div className="flex md:col-span-2 order-2 md:order-1 flex-col space-y-8">
         <h2 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200">
-          Posts by {author.name}
+          Posts by {author?.name || "Author"}
         </h2>
+
         {posts.length === 0 ? (
           <p className="text-gray-500">No posts yet.</p>
         ) : (

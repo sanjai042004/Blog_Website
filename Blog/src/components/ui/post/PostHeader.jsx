@@ -1,38 +1,28 @@
 import { Link } from "react-router-dom";
 import { calculateReadTime } from "../../../utilis/calculateReadTime";
+import { Avatar } from "../Avatar";
 
-const userProfile = (user) => {
-  if (!user?.profileImage) return "/placeholder-user.png"; 
-  return user.profileImage.startsWith("http")
-    ? user.profileImage
-    : `${import.meta.env.VITE_API_URL}${user.profileImage}`;
-};
 
-const userName = (user) => user?.name || "";
+const userName = (user) => user?.name || "Unknown";
 
 export const PostHeader = ({ post }) => {
+  const author = post?.author;
+
   return (
     <>
       <h1 className="text-5xl font-extrabold mb-12">{post?.title}</h1>
 
       <div className="flex items-center gap-3 mb-10">
-        {post?.author ? (
-          <Link to={`/author/${post.author._id}`}>
-            <img
-              src={userProfile(post.author)}
-              alt={userName(post.author)}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+        {author ? (
+          <Link to={`/author/${author._id}`}>
+            <Avatar user={author} size="w-10 h-10 text-sm" />
           </Link>
         ) : (
-          <img
-            src="/placeholder-user.png" 
-            alt="Unknown Author"
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <Avatar user={null} size="w-10 h-10 text-sm" />
         )}
+
         <div className="flex items-center gap-2">
-          <p className="font-bold">{userName(post?.author)}</p>
+          <p className="font-bold">{userName(author)}</p>
           <button className="border px-3 py-1 rounded-full text-sm hover:bg-gray-100">
             Follow
           </button>

@@ -6,7 +6,6 @@ import { useMemo } from "react";
 import { AuthorInfo } from "./post/AuthorInfo";
 import { getPostImage, getPreviewText } from "../../utilis/postUtilis";
 
-
 export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
   const navigate = useNavigate();
   const BACKEND_URL = import.meta.env.VITE_API_URL;
@@ -19,7 +18,10 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
     if (authorId) navigate(`/home/author/${authorId}`);
   };
 
-  const postImage = useMemo(() => getPostImage(post, BACKEND_URL), [post, BACKEND_URL]);
+  const postImage = useMemo(
+    () => getPostImage(post, BACKEND_URL),
+    [post, BACKEND_URL]
+  );
   const previewText = useMemo(() => getPreviewText(post), [post]);
 
   return (
@@ -27,6 +29,7 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
       className="cursor-pointer w-full max-w-xl mx-auto py-6 px-4"
       role="button"
       tabIndex={0}
+      onClick={() => navigate(`/home/post/${post._id}`)}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/home/post/${post._id}`)}
     >
       {!hideAuthor && (
@@ -34,7 +37,7 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
           author={author}
           onClick={goToAuthor}
           showDate={true}
-          date={post.createdAt ? formatDate(new Date(post.createdAt)) : "Unknown Date"}
+          date={post.createdAt ? new Date(post.createdAt) : null}
         />
       )}
 
@@ -49,22 +52,21 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
           </p>
         </div>
 
-        <div className="w-28 h-20 sm:w-36 sm:h-24 overflow-hidden flex-shrink-0">
-          <img
-            src={postImage}
-            alt={post.title || "Post image"}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        </div>
+        {postImage && (
+          <div className="w-28 h-20 sm:w-36 sm:h-24 overflow-hidden flex-shrink-0 rounded-md">
+            <img
+              src={postImage}
+              alt={post.title || "Post image"}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
       </Link>
 
       {/* Footer */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-500 mt-4 gap-2 sm:gap-0">
         <div className="flex items-center gap-4">
-          <span>
-            {post.createdAt ? formatDate(new Date(post.createdAt)) : "Unknown Date"}
-          </span>
           <span className="flex items-center gap-1">
             <FaHandsClapping /> 
           </span>
@@ -80,6 +82,7 @@ export const PostCard = ({ post, formatDate, hideAuthor = false }) => {
               console.log("Saved post:", post._id);
             }}
             className="hover:text-gray-700"
+            aria-label="Save post"
           >
             <MdSaveAlt size={18} />
           </button>
