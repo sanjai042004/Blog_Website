@@ -21,10 +21,10 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
     }
   }, [isOpen, user]);
 
- 
   useEffect(() => {
     return () => {
-      if (preview?.startsWith("")) URL.revokeObjectURL(preview);
+      // Revoke old object URL
+      if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
@@ -84,15 +84,10 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
         {/* Profile Image */}
         <div className="flex flex-col items-center mb-4">
           <div className="relative w-28 h-28 rounded-full overflow-hidden group">
-            {preview ? (
-              <img
-                src={preview}
-                alt="Profile Preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Avatar user={user} size="w-28 h-28 text-xl" />
-            )}
+            <Avatar
+              user={{ ...user, profileImage: preview || user.profileImage }}
+              size="w-28 h-28 text-xl"
+            />
             <label
               htmlFor="fileInput"
               className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition"

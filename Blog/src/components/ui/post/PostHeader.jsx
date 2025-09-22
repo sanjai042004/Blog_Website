@@ -1,39 +1,51 @@
 import { Link } from "react-router-dom";
-import { calculateReadTime } from "../../../utilis/calculateReadTime";
 import { Avatar } from "../Avatar";
+import { calculateReadTime } from "../../../utilis/calculateReadTime";
 
-
-const userName = (user) => user?.name || "Unknown";
-
-export const PostHeader = ({ post }) => {
+export const PostHeader = ({ post, currentUser, isFollowing, toggleFollow }) => {
   const author = post?.author;
+
+  const showFollowButton = currentUser && author && currentUser._id !== author._id;
+
+  const authorName = author?.name || "Unknown";
+
+  const readTime = calculateReadTime(
+    post?.blocks?.map((b) => b.content).join(" ") || ""
+  );
+
+  const formattedDate = post?.createdAt
+    ? new Date(post.createdAt).toLocaleDateString()
+    : "";
 
   return (
     <>
       <h1 className="text-5xl font-extrabold mb-12">{post?.title}</h1>
 
       <div className="flex items-center gap-3 mb-10">
-        {author ? (
-          <Link to={`/author/${author._id}`}>
-            <Avatar user={author} size="w-10 h-10 text-sm" />
-          </Link>
-        ) : (
-          <Avatar user={null} size="w-10 h-10 text-sm" />
-        )}
+        <Link to={author ? `/author/${author._id}` : "#"}>
+          <Avatar user={author || null} size="w-10 h-10 text-sm" />
+        </Link>
 
         <div className="flex items-center gap-2">
-          <p className="font-bold">{userName(author)}</p>
-          <button className="border px-3 py-1 rounded-full text-sm hover:bg-gray-100">
-            Follow
-          </button>
+          <p className="font-bold">{authorName}</p>
+
+          {showFollowButton ? (
+            <button
+              className={`border px-3 py-1 rounded-full text-sm ${
+                isFollowing ? "bg-gray-200" : "hover:bg-gray-100"
+              }`}
+              onClick={toggleFollow}
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </button>
+          ) : currentUser?._id === author?._id ? (
+            <span className="text-sm text-gray-500 px-3 py-1 border rounded-full">
+              You
+            </span>
+          ) : null}
+
           <p className="text-sm text-gray-500">
-            {calculateReadTime(
-              post?.blocks?.map((b) => b.content).join(" ") || ""
-            )}{" "}
-            ·{" "}
-            {post?.createdAt
-              ? new Date(post.createdAt).toLocaleDateString()
-              : ""}
+            {readTime} · {formattedDate}
           </p>
         </div>
       </div>

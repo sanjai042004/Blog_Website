@@ -4,113 +4,99 @@ import { VideoInput } from "./VideoInput";
 import { ImagePreview } from "./ImagePreview";
 import { BlockOptions } from "./BlockOptions";
 
-const BlockComponent = ({
-  index,
-  block,
-  blocks,
-  handleChange,
-  removeBlock,
-  addBlock,
-  contentRefs,
-  handleFileChange,
-  handleUnsplashSelect
-}) => {
+const BlockComponent = ({index,block,blocks,handleChange,removeBlock,addBlock,contentRefs,handleFileChange,handleUnsplashSelect}) => {
   const fileInputRef = useRef();
 
-  // Helpers
+
   const focusNext = useCallback(
     (nextIndex) => {
       if (nextIndex < 0) return;
-      setTimeout(() => {
-        contentRefs.current[nextIndex]?.focus();
-      }, 50);
+      setTimeout(() => contentRefs.current[nextIndex]?.focus(), 50);
     },
     [contentRefs]
   );
 
-  const removeImage = useCallback(() => {
-    handleChange(index, "preview", null);
-    handleChange(index, "media", null);
-    handleChange(index, "imageFile", null);
-    handleChange(index, "type", "text");
-  }, [handleChange, index]);
-
-  const removeYoutube = useCallback(() => {
-    handleChange(index, "youtubeEmbed", null);
-  }, [handleChange, index]);
-
-  const removeUnsplash = useCallback(() => {
-    handleChange(index, "unsplashResults", []);
-    handleChange(index, "unsplashQuery", "");
-  }, [handleChange, index]);
+  const removeMedia = useCallback(
+    (type) => {
+      if (type === "image") {
+        handleChange(index, "preview", null);
+        handleChange(index, "media", null);
+        handleChange(index, "imageFile", null);
+        handleChange(index, "type", "text");
+      } else if (type === "youtube") {
+        handleChange(index, "youtubeEmbed", null);
+      } else if (type === "unsplash") {
+        handleChange(index, "unsplashResults", []);
+        handleChange(index, "unsplashQuery", "");
+      }
+    },
+    [handleChange, index]
+  );
 
   const onFileChange = useCallback(
     (e) => {
-      if (e.target.files?.[0]) {
-        handleFileChange(index, e.target.files[0]);
+      const file = e.target.files?.[0];
+      if (file) {
+        handleFileChange(index, file);
+        e.target.value = ""; 
       }
     },
     [handleFileChange, index]
   );
 
-  // Keyboard Shortcuts
+  const autoResize = useCallback((el) => {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
+
+//  Keyboard Handlers 
+
+  const handleEnter = useCallback(() => {
+    if (index === blocks.length - 1 && !block.content?.trim()) return;
+    if (index < blocks.length - 1) {
+      focusNext(index + 1);
+    } else {
+      addBlock();
+      focusNext(index + 1);
+    }
+  }, [block.content, blocks.length, index, addBlock, focusNext]);
+
+  const handleBackspace = useCallback(() => {
+    if (block.preview || block.media) {
+      removeMedia("image");
+      return;
+    }
+    if (block.youtubeEmbed) {
+      removeMedia("youtube");
+      return;
+    }
+    if (block.unsplashResults?.length > 0 || block.unsplashQuery) {
+      removeMedia("unsplash");
+      return;
+    }
+    if (blocks.length > 1) {
+      removeBlock(index);
+      focusNext(index - 1);
+    }
+  }, [block, blocks.length, index, removeBlock, focusNext, removeMedia]);
+
   const handleContentKey = useCallback(
     (e) => {
-      // ENTER: move to next block or create new
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-
-        if (index === blocks.length - 1 && !block.content?.trim()) return;
-
-        if (index < blocks.length - 1) {
-          focusNext(index + 1);
-        } else {
-          addBlock();
-          focusNext(index + 1);
-        }
+        handleEnter();
       }
-
-      // BACKSPACE: remove media / video / Unsplash / block
       if (e.key === "Backspace" && !block.content?.trim()) {
         e.preventDefault();
-
-        if (block.preview || block.media) {
-          removeImage();
-          return;
-        }
-
-        if (block.youtubeEmbed) {
-          removeYoutube();
-          return;
-        }
-
-        if (block.unsplashResults?.length > 0 || block.unsplashQuery) {
-          removeUnsplash();
-          return;
-        }
-
-        if (blocks.length > 1) {
-          removeBlock(index);
-          focusNext(index - 1);
-        }
+        handleBackspace();
       }
     },
-    [
-      block,
-      blocks,
-      index,
-      addBlock,
-      removeBlock,
-      focusNext,
-      removeImage,
-      removeYoutube,
-      removeUnsplash,
-    ]
+    [block.content, handleEnter, handleBackspace]
   );
+
 
   return (
     <div className="flex items-start gap-3 mt-10">
-      {/* Left Options */}
       <BlockOptions
         block={block}
         index={index}
@@ -118,9 +104,7 @@ const BlockComponent = ({
         onUploadClick={() => fileInputRef.current?.click()}
       />
 
-      {/* Right Content */}
       <div className="flex-1">
-        {/* Hidden file input */}
         <input
           type="file"
           ref={fileInputRef}
@@ -128,7 +112,6 @@ const BlockComponent = ({
           accept="image/*"
           onChange={onFileChange}
         />
-
         {/* Unsplash Search */}
         {block.ui?.showUnsplashInput && (
           <UnsplashSearch
@@ -140,9 +123,9 @@ const BlockComponent = ({
         )}
 
         {/* Image Preview */}
-        {block.preview && <ImagePreview url={block.preview} onRemove={removeImage} />}
+        {block.preview && <ImagePreview url={block.preview} onRemove={() => removeMedia("image")} />}
 
-        {/* YouTube Embed */}
+        {/* YouTube upload */}
         {block.youtubeEmbed && (
           <div className="mb-4">
             <iframe
@@ -165,9 +148,9 @@ const BlockComponent = ({
           ref={(el) => (contentRefs.current[index] = el)}
           onChange={(e) => {
             handleChange(index, "content", e.target.value);
-            e.target.style.height = "auto";
-            e.target.style.height = `${e.target.scrollHeight}px`;
+            autoResize(e.target);
           }}
+          autoFocus
           onKeyDown={handleContentKey}
           placeholder="Tell your story..."
           className="w-full text-2xl border-none outline-none placeholder-gray-400 resize-none overflow-hidden bg-transparent"

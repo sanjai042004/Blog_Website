@@ -11,13 +11,18 @@ const commentSchema = new mongoose.Schema(
 
 const blockSchema = new mongoose.Schema(
   {
-    type: { type: String, enum: ["text", "image", "youtube"], default: "text" },
+    type: { 
+      type: String, 
+      enum: ["subtitle", "text", "image", "youtube"], 
+      default: "text" 
+    },
     content: { type: String, trim: true }, 
     media: { type: String },               
-    youtubeEmbed: { type: String },        
+    youtubeEmbed: { type: String },       
   },
   { _id: false }
 );
+
 
 const postSchema = new mongoose.Schema(
   {

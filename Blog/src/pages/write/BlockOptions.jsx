@@ -6,32 +6,24 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
   const ui = block.ui || {};
   const expanded = ui.showOptions;
 
-  // Don't show options if block already has content/media/video
   if (block.content || block.media || block.youtubeEmbed) return null;
 
-  // Toggle add / close options
   const toggleOptions = () =>
     handleChange(index, "ui", { ...ui, showOptions: !expanded });
 
-  // Update UI state for showing specific input
   const setUI = (updates) =>
     handleChange(index, "ui", { ...ui, ...updates, showOptions: false });
 
-  // Button definitions
   const buttons = [
-    { Icon: IoImageOutline, action: onUploadClick, hover: "hover:text-green-700" },
-    { Icon: LuFileVideo, action: () => setUI({ showVideoInput: true }), hover: "hover:text-gray-700" },
-    { Icon: TbBrandUnsplash, action: () => setUI({ showUnsplashInput: true }), hover: "hover:text-gray-700" },
+    { key: "image", Icon: IoImageOutline, action: onUploadClick, hover: "hover:text-green-700 cursor-pointer" },
+    { key: "video", Icon: LuFileVideo, action: () => setUI({ showVideoInput: true }), hover: "hover:text-gray-700 cursor-pointer" },
+    { key: "unsplash", Icon: TbBrandUnsplash, action: () => setUI({ showUnsplashInput: true }), hover: "hover:text-gray-700 cursor-pointer" },
   ];
 
   return (
     <div className="flex gap-3 items-center mt-3">
-      {/* Toggle Add / Close Button */}
-      <button
-        type="button"
-        onClick={toggleOptions}
-        className="transition-colors"
-      >
+    {/* add cancel  */}
+      <button type="button" onClick={toggleOptions} className="cursor-pointer transition-colors">
         {expanded ? (
           <IoCloseCircleOutline className="w-9 h-9 text-gray-500 hover:text-red-500" />
         ) : (
@@ -39,12 +31,12 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
         )}
       </button>
 
-      {/* Expanded Options */}
+      {/* expanded option */}
       {expanded && (
         <div className="flex gap-4 animate-fade-in">
-          {buttons.map(({ Icon, action, hover }, i) => (
+          {buttons.map(({ key, Icon, action, hover }) => (
             <button
-              key={i}
+              key={key}
               type="button"
               onClick={action}
               className={`transition-colors ${hover}`}
@@ -57,3 +49,4 @@ export const BlockOptions = ({ block = {}, index, handleChange, onUploadClick })
     </div>
   );
 };
+

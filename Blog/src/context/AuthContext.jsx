@@ -1,38 +1,16 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
+import {createContext,useContext,useEffect,useState,useCallback,useMemo,} from "react";
 import { api } from "../service/api";
+import { getProfileImage } from "../utilis/utilis";
 
 const AuthContext = createContext();
-
-// Format profile image URLs
-const formatProfileImage = (img, bustCache = false) => {
-  if (!img) return null;
-  if (/^https?:\/\//.test(img)) return img;
-
-  const baseURL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
-  const imagePath = img.replace(/^\//, "");
-  return `${baseURL}/${imagePath}${bustCache ? `?t=${Date.now()}` : ""}`;
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Save / clear user
-  const saveUser = (userData) => setUser(userData || null);
-  const clearUser = () => setUser(null);
-
-  // Centralized user state update
   const updateUserState = (userData, bustCache = false) => {
     if (!userData) {
-      clearUser();
+      setUser(null);
       return null;
     }
 
@@ -40,11 +18,10 @@ export const AuthProvider = ({ children }) => {
       ...userData,
       profileImage: /^https?:\/\//.test(userData.profileImage)
         ? userData.profileImage
-        : formatProfileImage(userData.profileImage, bustCache),
+        : getProfileImage(userData.profileImage, bustCache),
     };
 
     setUser(formattedUser);
-    setError(null);
     return formattedUser;
   };
 
@@ -55,42 +32,43 @@ export const AuthProvider = ({ children }) => {
       const { data } = await api.get("/auth/profile", {
         withCredentials: true,
       });
-      if (data.success) return updateUserState(data.user);
-      clearUser();
+
+      if (data.success)
+         return updateUserState(data.user);
+      setUser(null);
       return null;
-    } catch (err) {
-      const msg =
-        err.response?.data?.message || "Session expired. Please log in again.";
-      setError(msg);
-      clearUser();
+    } catch {
+      setUser(null);
       return null;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  
-  useEffect(() => {
-    const cachedUser = localStorage.getItem("authUser");
-    if (cachedUser) {
-      try {
-        const parsed = JSON.parse(cachedUser);
-        setUser(parsed);
-        setLoading(false); 
-      } catch {
-        localStorage.removeItem("authUser");
-      }
-    }
-    fetchProfile();
-  }, [fetchProfile]);
 
-  // Keep user synced with localStorage
+useEffect(() => {
+  const cachedUser = localStorage.getItem("authUser");
+  if (cachedUser) {
+    try {
+      const parsed = JSON.parse(cachedUser);
+      setUser(parsed);
+      setLoading(false);
+      fetchProfile();
+    } catch {
+      localStorage.removeItem("authUser");
+    }
+  } else {
+    setLoading(false); 
+  }
+}, [fetchProfile]);
+
+
   useEffect(() => {
     if (user) localStorage.setItem("authUser", JSON.stringify(user));
     else localStorage.removeItem("authUser");
   }, [user]);
 
-  // Generic auth request (register/login/google)
+
   const authRequest = async (endpoint, payload) => {
     try {
       const { data } = await api.post(endpoint, payload, {
@@ -116,11 +94,13 @@ export const AuthProvider = ({ children }) => {
   // Auth actions
   const register = (name, email, password) =>
     authRequest("/auth/register", { name, email, password });
+  
   const login = (email, password) =>
     authRequest("/auth/login", { email, password });
+
   const googleLogin = (token) => authRequest("/auth/google", { token });
 
-  // Refresh access token
+
   const refreshAccessToken = async () => {
     try {
       const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
@@ -140,15 +120,13 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error("Logout Error:", err.response?.data || err.message);
     } finally {
-      clearUser();
+      setUser(null);
     }
   };
 
- 
   const value = useMemo(
     () => ({
       user,
-      setUser: saveUser,
       register,
       login,
       googleLogin,
@@ -156,9 +134,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       fetchProfile,
       loading,
-      error,
     }),
-    [user, loading, error]
+    [user, loading]
   );
 
   return (

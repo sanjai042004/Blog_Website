@@ -87,7 +87,6 @@ export const Navbar = ({ toggleSidebar }) => {
           </div>
         </form>
 
-  
         {showDropdown && (
           <div className="absolute top-full mt-2 left-0 w-full max-w-md bg-white shadow-lg rounded-lg p-2 z-50">
             {searchTerm.trim() === "" ? (
@@ -117,30 +116,26 @@ export const Navbar = ({ toggleSidebar }) => {
         )}
       </div>
 
-    
-      <ul className="hidden md:flex space-x-6 items-center">
-        <li>
-          <NavLink
-            to="/write"
-            className="flex gap-2 items-center text-gray-600 hover:text-black text-lg"
-            title="Write"
-          >
-           <TfiWrite /> Write
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/notifications"
-            className="text-gray-600 hover:text-black text-2xl"
-            title="Notifications"
-          >
-            <CiBellOn />
-          </NavLink>
-        </li>
-        <li>
-          <ProfileDropdown />
-        </li>
-      </ul>
+      {/* Actions → always visible */}
+      <div className="flex items-center gap-4">
+        <NavLink
+          to="/write"
+          className="flex gap-2 items-center text-gray-600 hover:text-black text-lg"
+          title="Write"
+        >
+          <TfiWrite /> <span className="hidden sm:inline">Write</span>
+        </NavLink>
+
+        <NavLink
+          to="/notifications"
+          className="text-gray-600 hover:text-black text-2xl"
+          title="Notifications"
+        >
+          <CiBellOn />
+        </NavLink>
+
+        <ProfileDropdown />
+      </div>
     </nav>
   );
 };
