@@ -2,9 +2,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { api } from "../service/api";
 import { useAuth } from "../context/AuthContext";
-
-import {PostHeader,CommentSection,PostActions,PostBlocks,} from "../components/ui/post";
 import { useAuthor } from "./hooks/useAuthor";
+import {CommentSection,PostActions,PostBlocks,PostHeader} from "../components/post"
 
 export const PostDetail = () => {
   const { user: currentUser } = useAuth();
@@ -65,7 +64,7 @@ export const PostDetail = () => {
   if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-8">
+    <div className="w-full max-w-2xl mx-auto px-4 py-8">
       {/* Back button */}
       <Link to="/home" className="block text-gray-500 hover:text-gray-700 text-sm mb-4">
         ← Back

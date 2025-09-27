@@ -1,5 +1,5 @@
-import { formatDate } from "../../../utilis/utilis";
-import { Avatar } from "../Avatar";
+import { formatDate } from "../../utilis/utilis";
+import { Avatar } from "../ui/Avatar";
 
 
 export const AuthorInfo = ({ author, onClick, showDate = false, date }) => {

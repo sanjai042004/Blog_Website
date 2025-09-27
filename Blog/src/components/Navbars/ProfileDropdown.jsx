@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { TbSettings2 } from "react-icons/tb";
 import { useAuth } from "../../context/AuthContext";
 import { useClickAway } from "react-use";
-import { Avatar } from "./Avatar";
+import { Avatar } from "../ui/Avatar";
 
 export const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);

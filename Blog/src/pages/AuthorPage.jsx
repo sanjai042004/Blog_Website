@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { PostCard } from "../components/ui/PostCard";
+import { PostCard } from "../components/post/PostCard";
 import { useAuth } from "../context/AuthContext";
 import { useAuthor } from "./hooks/useAuthor";
-import { formatDate, getProfileImage } from "../utilis/utilis";
+import { formatDate } from "../utilis/utilis";
+import { Avatar } from "../components/ui/Avatar"; 
 
 export const AuthorPage = () => {
   const { authorId } = useParams();
@@ -13,9 +14,9 @@ export const AuthorPage = () => {
     useAuthor(authorId, authUser);
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
+  if (error)
+    return <div className="text-center py-20 text-red-500">{error}</div>;
 
-  const profileImageSrc = getProfileImage(author?.profileImage);
   const authUserId = String(authUser?._id || authUser?.id || "");
   const authorIdStr = String(author?._id || "");
   const showFollowButton = authUser && author && authorIdStr !== authUserId;
@@ -25,29 +26,26 @@ export const AuthorPage = () => {
       {/* Profile Section */}
       <div className="md:row-span-1 order-1 md:order-2">
         <div className="p-6 border-l md:min-h-screen border-gray-200 sticky top-20 bg-white">
-          {profileImageSrc ? (
-            <img
-              src={profileImageSrc}
-              alt={author?.name || "Unknown Author"}
-              className="w-28 h-28 rounded-full object-cover mx-auto mb-4"
-            />
-          ) : (
-            <div className="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center font-bold text-2xl text-gray-500 mx-auto mb-4">
-              {author?.name?.charAt(0).toUpperCase() || "?"}
-            </div>
-          )}
+          
+          <div className="flex justify-center mb-4">
+            <Avatar user={author} size="w-28 h-28" fontSize="text-2xl" />
+          </div>
 
           <h1 className="text-xl font-bold text-center">
             {author?.name || "Unknown Author"}
           </h1>
 
           {author?.bio && (
-            <p className="text-gray-600 text-sm mt-2 text-center">{author.bio}</p>
+            <p className="text-gray-600 text-sm mt-2 text-center">
+              {author.bio}
+            </p>
           )}
 
           <p className="text-sm text-gray-500 text-center mt-2">
             <button
-              onClick={() => author?._id && navigate(`/followers/${author._id}`)}
+              onClick={() =>
+                author?._id && navigate(`/followers/${author._id}`)
+              }
               className="underline hover:text-black"
             >
               {author?.followers?.length || 0} Followers
@@ -79,7 +77,12 @@ export const AuthorPage = () => {
           <p className="text-gray-500">No posts yet.</p>
         ) : (
           posts.map((post) => (
-            <PostCard key={post._id} post={post} formatDate={formatDate} hideAuthor />
+            <PostCard
+              key={post._id}
+              post={post}
+              formatDate={formatDate}
+              hideAuthor
+            />
           ))
         )}
       </div>

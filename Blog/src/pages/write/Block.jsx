@@ -16,8 +16,7 @@ const BlockComponent = ({index,block,blocks,handleChange,removeBlock,addBlock,co
     [contentRefs]
   );
 
-  const removeMedia = useCallback(
-    (type) => {
+  const removeMedia = useCallback((type) => {
       if (type === "image") {
         handleChange(index, "preview", null);
         handleChange(index, "media", null);

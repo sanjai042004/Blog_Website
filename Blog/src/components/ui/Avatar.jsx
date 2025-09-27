@@ -7,36 +7,41 @@ export const Avatar = ({
   fontSize = "text-sm",
   onClick,
   fallback = null,
+    src,
 }) => {
   const [imgError, setImgError] = useState(false);
 
-  // Always use the final profileImage from AuthContext
-  const profileImage = getProfileImage(user?.profileImage);
+  const profileImage = src || getProfileImage(user?.profileImage);
 
   useEffect(() => {
     setImgError(false);
   }, [profileImage]);
 
   // Get initials from user name
-  const getInitial = (name) => {
-  if (!name) return "U";
-  return name.trim()[0].toUpperCase();
-};
+  const getInitials = (name = "") => {
+    const parts = name.trim().split(" ");
+    if (!parts[0]) return "U";
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0]).toUpperCase();
+  };
 
-const initials = getInitial(user?.name);
+  const initials = getInitials(user?.name);
 
-const colors = ["bg-red-400","bg-green-400","bg-blue-400","bg-yellow-400","bg-purple-400"];
-const bgColor = colors[user?.name?.charCodeAt(0) % colors.length] || "bg-gray-300";
-
-
+  const colors = [
+    "bg-red-600",
+    "bg-green-600",
+    "bg-purple-600",
+    "bg-orange-400",
+    "bg-gray-600",
+  ];
+  const charCode = user?.name?.charCodeAt(0) || 0;
+  const bgColor = colors[charCode % colors.length];
 
   const clickable = onClick ? "cursor-pointer" : "";
-
-
   if (profileImage && !imgError) {
     return (
       <img
-        key={profileImage} 
+        key={profileImage}
         src={profileImage}
         alt={user?.name || "User Avatar"}
         className={`${size} rounded-full object-cover ${clickable}`}
@@ -47,7 +52,6 @@ const bgColor = colors[user?.name?.charCodeAt(0) % colors.length] || "bg-gray-30
     );
   }
 
-  // 2️⃣ Fallback image
   if (fallback) {
     return (
       <img
@@ -60,17 +64,16 @@ const bgColor = colors[user?.name?.charCodeAt(0) % colors.length] || "bg-gray-30
     );
   }
 
-  // 3️⃣ Show initials if no image
-  return (
-   <div
-  role="img"
-  aria-label={user?.name || "Unknown User"}
-  className={`${size} ${fontSize} ${bgColor} text-white font-semibold flex items-center justify-center rounded-full ${clickable}`}
-  onClick={onClick}
-  title={user?.name || "Unknown User"}
->
-  {initials}
-</div>
 
+  return (
+    <div
+      role="img"
+      aria-label={user?.name || "Unknown User"}
+      className={`${size} ${fontSize} ${bgColor} text-white font-semibold flex items-center justify-center rounded-full ${clickable}`}
+      onClick={onClick}
+      title={user?.name || "Unknown User"}
+    >
+      {initials}
+    </div>
   );
 };

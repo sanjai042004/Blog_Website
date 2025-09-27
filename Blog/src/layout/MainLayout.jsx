@@ -42,8 +42,7 @@ export const MainLayout = () => {
         onClose={() => setRegisterOpen(false)}
         onSwitchToLogin={handleSwitchToLogin}
       />
-
-      <Footer />
+     <Footer />
     </div>
   );
 };

@@ -3,7 +3,12 @@ const Post = require("../models/post.model");
 const upload = require("../../uploads/upload");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
-const { createTokens, attachTokens, clearCookies, publicUser } = require("../utils/auth");
+const {
+  createTokens,
+  attachTokens,
+  clearCookies,
+  publicUser,
+} = require("../utils/auth");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -12,16 +17,21 @@ const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
     if (!email || !password)
-      return res.status(400).json({ success: false, message: "Email & password required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email & password required" });
 
     if (password.length < 8)
-      return res.status(400).json({ success: false, message: "Password must be 8+ chars" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Password must be 8+ chars" });
 
     const lowerEmail = email.toLowerCase();
     if (await User.findOne({ email: lowerEmail }))
-      return res.status(400).json({ success: false, message: "Email already in use" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already in use" });
 
-    
     const user = await User.create({
       name: name || lowerEmail.split("@")[0],
       email: lowerEmail,
@@ -45,10 +55,14 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "+password"
+    );
 
     if (!user || !(await user.comparePassword(password)))
-      return res.status(400).json({ success: false, message: "Invalid credentials" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
 
     const tokens = createTokens(user);
     user.refreshTokens.push(tokens.refreshToken);
@@ -71,7 +85,7 @@ const googleLogin = async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, picture, sub: googleId } = ticket.getPayload();
+    const { email, name, sub: googleId } = ticket.getPayload();
 
     let user = await User.findOne({ email });
 
@@ -81,14 +95,11 @@ const googleLogin = async (req, res) => {
         email,
         googleId,
         authProvider: "google",
-        profileImage: picture || "",
+        profileImage: "",
       });
-    } else if (!user.profileImage && picture) {
-      user.profileImage = picture;
-      await user.save();
     }
-
     const tokens = createTokens(user);
+
     user.refreshTokens.push(tokens.refreshToken);
     await user.save();
 
@@ -104,21 +115,30 @@ const googleLogin = async (req, res) => {
 const refreshToken = async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
-    if (!token) return res.status(401).json({ success: false, message: "No refresh token" });
+    if (!token)
+      return res
+        .status(401)
+        .json({ success: false, message: "No refresh token" });
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.id);
     if (!user || !user.refreshTokens.includes(token))
-      return res.status(403).json({ success: false, message: "Invalid refresh token" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Invalid refresh token" });
 
     const newTokens = createTokens(user);
-    user.refreshTokens = user.refreshTokens.filter((t) => t !== token).concat(newTokens.refreshToken);
+    user.refreshTokens = user.refreshTokens
+      .filter((t) => t !== token)
+      .concat(newTokens.refreshToken);
     await user.save();
 
     attachTokens(res, newTokens);
     res.json({ success: true, user: publicUser(user) });
   } catch {
-    res.status(401).json({ success: false, message: "Invalid or expired refresh token" });
+    res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired refresh token" });
   }
 };
 
@@ -142,8 +162,11 @@ const logout = async (req, res) => {
 
 //Profile
 const getProfile = async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password -refreshTokens");
-  if (!user) return res.status(404).json({ success: false, message: "User not found" });
+  const user = await User.findById(req.user.id).select(
+    "-password -refreshTokens"
+  );
+  if (!user)
+    return res.status(404).json({ success: false, message: "User not found" });
   res.json({ success: true, user: publicUser(user) });
 };
 
@@ -156,7 +179,9 @@ const getAuthorWithPosts = async (req, res) => {
       .populate("following", "name profileImage");
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "Author not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Author not found" });
     }
 
     const posts = await Post.find({ author: user._id })
@@ -174,7 +199,10 @@ const getAuthorWithPosts = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password ");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const { name, bio } = req.body;
     if (name) user.name = name;

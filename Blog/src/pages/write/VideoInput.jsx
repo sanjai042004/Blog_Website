@@ -9,7 +9,6 @@ export const VideoInput = ({ block,index, handleChange }) => {
   const trimmed = link.trim();
 
   if (!trimmed) {
-    // Empty input → remove the video input
     handleChange(index, "ui", { ...(block.ui || {}), showVideoInput: false });
     setLink("");
     setErrorMessage("");
@@ -25,7 +24,7 @@ export const VideoInput = ({ block,index, handleChange }) => {
     handleChange(index, "youtubeEmbed", null);
   }
 
-  // Always hide the input after processing
+
   handleChange(index, "ui", { ...(block.ui || {}), showVideoInput: false });
   setLink("");
 };

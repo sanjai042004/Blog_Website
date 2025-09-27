@@ -1,7 +1,7 @@
 export * from "./Footer";
-export * from "./ProfileDropdown";
+export * from "../Navbars/ProfileDropdown";
 export * from "./ExploreTopics";
 export * from "./UnsplashGrid";
-export * from "./PostCard";
+export * from "../post/PostCard";
 export * from "./Avatar";
 

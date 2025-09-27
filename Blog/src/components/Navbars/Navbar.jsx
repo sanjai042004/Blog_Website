@@ -63,8 +63,7 @@ export const Navbar = ({ toggleSidebar }) => {
 
   return (
     <nav className="flex items-center justify-between px-4 md:px-8 py-2 border-b border-gray-300 sticky top-0 bg-white z-50">
-      {/* Logo + Hamburger */}
-      <div className="flex items-center gap-2 text-2xl font-bold text-black">
+        <div className="flex items-center gap-2 text-2xl font-bold text-black">
         <button className="cursor-pointer" onClick={toggleSidebar}>
           <CiMenuBurger />
         </button>
@@ -115,8 +114,6 @@ export const Navbar = ({ toggleSidebar }) => {
           </div>
         )}
       </div>
-
-      {/* Actions → always visible */}
       <div className="flex items-center gap-4">
         <NavLink
           to="/write"

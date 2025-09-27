@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Avatar } from "../Avatar";
-import { calculateReadTime } from "../../../utilis/calculateReadTime";
+import { Avatar } from "../ui/Avatar";
+import { calculateReadTime } from "../../utilis/calculateReadTime";
 
 export const PostHeader = ({ post, currentUser, isFollowing, toggleFollow }) => {
   const author = post?.author;

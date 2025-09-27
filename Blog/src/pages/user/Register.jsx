@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -6,17 +7,33 @@ import { IoMailOpenOutline } from "react-icons/io5";
 
 export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
-  const { register } = useAuth();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const { register: authRegister } = useAuth();
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm();
 
   if (!isOpen) return null;
+
+  const onSubmit = async (data) => {
+    try {
+      const result = await authRegister(data.name, data.email, data.password);
+
+      if (result.success) {
+        setTimeout(() => {
+          onClose();
+          navigate("/home");
+        }, 1500);
+      } else {
+        alert(result.message || "Something went wrong");
+      }
+    } catch (err) {
+      alert(err.message || "Failed to register");
+    }
+  };
 
   const handleSwitchToLogin = () => {
     if (typeof onSwitchToLogin === "function") {
@@ -29,30 +46,6 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     setShowEmailForm(true);
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
-    try {
-      const result = await register(name, email, password);
-
-      if (result.success) {
-        setSuccess("Account created successfully!");
-        setTimeout(() => {
-          onClose();
-          navigate("/home");
-        }, 1500);
-      } else {
-        setError(result.message || "Something went wrong");
-      }
-    } catch (err) {
-      setError(err.message || "Failed to register");
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50"
@@ -75,57 +68,57 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
         {!showEmailForm ? (
           <button
-            className="w-full border rounded-full py-2 mb-6 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:bg-blue-50 transition"
+            className="w-full border rounded-full py-2 mb-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:bg-blue-50 transition"
             onClick={handleEmailSignUpClick}
           >
             <IoMailOpenOutline /> Sign up with email
           </button>
         ) : (
-          <form onSubmit={handleRegister} className="flex flex-col gap-4 mb-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mb-6">
             <input
-              type="text"
+              {...register("name", { required: "Name is required" })}
               placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               className="border rounded-full py-2 px-4 focus:outline-none"
             />
+            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+
             <input
               type="email"
+              {...register("email", {
+                required: "Email is required",
+                pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email address" },
+              })}
               placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
               className="border rounded-full py-2 px-4 focus:outline-none"
             />
+            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+
             <input
               type="password"
+              {...register("password", {
+                required: "Password is required",
+                minLength: { value: 8, message: "Password must be at least 8 characters" },
+              })}
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
               className="border rounded-full py-2 px-4 focus:outline-none"
             />
+            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="w-full bg-green-600 text-white rounded-full py-2 hover:bg-green-700 transition disabled:opacity-50"
             >
-              {loading ? "Registering..." : "Sign up"}
+              {isSubmitting ? "Registering..." : "Sign up"}
             </button>
-
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-            {success && (
-              <p className="text-green-600 text-sm text-center">{success}</p>
-            )}
-            <div className="my-4 flex items-center">
-              <hr className="flex-grow border-gray-300" />
-              <span className="px-2 text-gray-500 text-sm">or</span>
-              <hr className="flex-grow border-gray-300" />
-            </div>
           </form>
         )}
+
+        <div className="my-4 flex items-center">
+          <hr className="flex-grow border-gray-300" />
+          <span className="px-2 text-gray-500 text-sm">or</span>
+          <hr className="flex-grow border-gray-300" />
+        </div>
 
         <div className="w-full mb-4">
           <GoogleLoginButton mode="register" />
@@ -150,8 +143,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
           and{" "}
           <a href="#" className="underline">
             Privacy Policy
-          </a>
-          .
+          </a>.
         </p>
       </div>
     </div>

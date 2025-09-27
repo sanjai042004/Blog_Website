@@ -53,7 +53,9 @@ const createPost = async (req, res) => {
 // Get Posts
 const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find().populate("author", "name profileImage email").sort({ createdAt: -1 });
+    const posts = await Post.find()
+      .populate("author", "name profileImage email")
+      .sort({ createdAt: -1 });
     res.json({ success: true, posts });
   } catch (err) {
     handleError(res, err);
@@ -65,7 +67,8 @@ const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate("author", "name profileImage email")
-      .populate("comments.user", "name profileImage email");
+      .populate("comments.user", "name profileImage email")
+      .populate("comments.replies.user", "name profileImage email");
 
     if (!post) return res.status(404).json({ success: false, message: "Post not found" });
 
@@ -107,17 +110,61 @@ const deletePost = async (req, res) => {
 const addComment = async (req, res) => {
   try {
     const { id: postId } = req.params;
-    const { text } = req.body;
+    const { text, parentId } = req.body;
     if (!text?.trim()) return res.status(400).json({ success: false, message: "Comment cannot be empty" });
 
     const post = await findPost(postId);
-    post.comments.push({ user: req.user.id, text });
+
+    if (parentId) {
+      // Reply
+      const parentComment = post.comments.id(parentId);
+      if (!parentComment) return res.status(404).json({ success: false, message: "Parent comment not found" });
+
+      parentComment.replies.push({ user: req.user.id, text });
+    } else {
+      // New comment
+      post.comments.push({ user: req.user.id, text });
+    }
+
     await post.save();
 
-    const updatedPost = await Post.findById(postId).populate("comments.user", "name profileImage email");
-    const comment = updatedPost.comments.at(-1);
+    const updatedPost = await Post.findById(postId)
+      .populate("comments.user", "name profileImage email")
+      .populate("comments.replies.user", "name profileImage email");
+
+    const comment = parentId 
+      ? updatedPost.comments.id(parentId).replies.at(-1)
+      : updatedPost.comments.at(-1);
 
     res.json({ success: true, comment });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+// Delete Comment or Reply
+const deleteComment = async (req, res) => {
+  try {
+    const { postId, commentId, replyId } = req.params;
+    const post = await findPost(postId);
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
+
+    if (replyId) {
+      const reply = comment.replies.id(replyId);
+      if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
+
+      if (reply.user.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
+      reply.remove();
+    } else {
+      // Delete comment
+      if (comment.user.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
+      comment.remove(); 
+    }
+
+    await post.save();
+    res.json({ success: true, message: "Deleted successfully" });
   } catch (err) {
     handleError(res, err);
   }
@@ -151,17 +198,22 @@ const clapPost = async (req, res) => {
 // Clap Comment
 const clapComment = async (req, res) => {
   try {
-    const { postId, commentId } = req.params;
-    const userId = req.user.id;
-
+    const { postId, commentId, replyId } = req.params;
     const post = await Post.findById(postId);
     const comment = post.comments.id(commentId);
     if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
 
-    const action = toggleClap(comment.claps, userId);
-    await post.save();
+    let action;
+    if (replyId) {
+      const reply = comment.replies.id(replyId);
+      if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
+      action = toggleClap(reply.claps, req.user.id);
+    } else {
+      action = toggleClap(comment.claps, req.user.id);
+    }
 
-    res.json({ success: true, action, totalClaps: comment.claps.length });
+    await post.save();
+    res.json({ success: true, action });
   } catch (err) {
     handleError(res, err);
   }
@@ -175,6 +227,7 @@ module.exports = {
   updatePost,
   deletePost,
   addComment,
+  deleteComment,
   clapPost,
   clapComment,
 };

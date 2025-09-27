@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { api } from "../../../service/api";
+import { api } from "../../service/api";
 import { FaHandsClapping } from "react-icons/fa6";
-import { Avatar } from "../Avatar";
+import { Avatar } from "../ui/Avatar";
 
 
 const userName = (user) => user?.name || "Unknown";

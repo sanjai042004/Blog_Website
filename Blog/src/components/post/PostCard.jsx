@@ -3,7 +3,7 @@ import { FaRegComment } from "react-icons/fa";
 import { FaHandsClapping } from "react-icons/fa6";
 import { MdSaveAlt } from "react-icons/md";
 import { useMemo } from "react";
-import { AuthorInfo } from "./post/AuthorInfo";
+import { AuthorInfo } from "./AuthorInfo";
 import { getPostImage, getPreviewText } from "../../utilis/postUtilis";
 
 export const PostCard = ({ post, formatDate, hideAuthor = false }) => {

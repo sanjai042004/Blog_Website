@@ -5,7 +5,6 @@ import { Avatar } from "../components/ui/Avatar";
 
 export const ProfileSetting = ({ isOpen, onClose }) => {
   const { user, fetchProfile } = useAuth();
-
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
   const [name, setName] = useState("");
@@ -23,10 +22,11 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     return () => {
-      // Revoke old object URL
-      if (preview && preview.startsWith("blob:")) URL.revokeObjectURL(preview);
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
     };
-  }, [preview]);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -34,12 +34,15 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
     const f = e.target.files[0];
     if (f) {
       setFile(f);
-      const url = URL.createObjectURL(f);
-      setPreview(url);
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+      setPreview(URL.createObjectURL(f));
     }
   };
 
   const handleSave = async () => {
+    if (!name.trim()) return alert("Name cannot be empty.");
     setLoading(true);
     try {
       const formData = new FormData();
@@ -52,7 +55,7 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
       });
 
       if (data.success) {
-        await fetchProfile(); 
+        await fetchProfile();
         onClose();
       }
     } catch (err) {
@@ -74,18 +77,21 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+          className="absolute top-3 right-3 text-gray-500 cursor-pointer hover:text-black text-xl"
         >
           ✖
         </button>
 
-        <h2 className="text-center text-2xl font-semibold mb-6">Edit Profile</h2>
+        <h2 className="text-center text-2xl font-semibold mb-6">
+          Edit Profile
+        </h2>
 
         {/* Profile Image */}
         <div className="flex flex-col items-center mb-4">
           <div className="relative w-28 h-28 rounded-full overflow-hidden group">
             <Avatar
-              user={{ ...user, profileImage: preview || user.profileImage }}
+              user={user}
+             src={preview} 
               size="w-28 h-28 text-xl"
             />
             <label
@@ -132,13 +138,13 @@ export const ProfileSetting = ({ isOpen, onClose }) => {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="flex-1 py-2 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
             onClick={onClose}
-            className="flex-1 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+            className="flex-1 py-2 bg-gray-300 rounded-lg cursor-pointer hover:bg-gray-400"
           >
             Cancel
           </button>

@@ -21,7 +21,6 @@ app.use(cors({
   credentials: true                
 }));
 
-// MongoDB connection
 const mongoOptions = { maxPoolSize: 20, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000 };
 const connectToMongoDB = async () => {
   try {
@@ -37,12 +36,7 @@ const connectToMongoDB = async () => {
 // Routes
 app.use("/api", routes);
 
-// Root
-app.get("/", (_, res) => {
-  res.send("Welcome to Blog Backend");
-});
 
-// Error middleware
 app.use((err, req, res, next) => {
   console.error("🔥 Error middleware:", err.message);
 
@@ -53,7 +47,6 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
 
-// Start server
 connectToMongoDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);

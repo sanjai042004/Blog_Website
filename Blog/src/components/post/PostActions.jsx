@@ -1,7 +1,7 @@
 import { FaRegCommentDots } from "react-icons/fa";
 import { FaHandsClapping } from "react-icons/fa6";
 import { BsBookmark, BsShare, BsThreeDots } from "react-icons/bs";
-import { api } from "../../../service/api";
+import { api } from "../../service/api";
 
 export const PostActions = ({postId,clapCount,userClapped,setClapCount,setUserClapped,currentUser,navigate,}) => {
   const handleClap = async () => {

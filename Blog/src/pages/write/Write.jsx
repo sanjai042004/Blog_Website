@@ -141,7 +141,7 @@ export const Write = () => {
             removeBlock={removeBlock}
             addBlock={addBlock}
             contentRefs={contentRefs}
-            imageInputRefs={imageInputRefs}
+            // imageInputRefs={imageInputRefs}
             handleFileChange={handleImageChange}
             handleUnsplashSelect={handleUnsplashSelect}
           />

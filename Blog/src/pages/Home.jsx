@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearch } from "../context/SearchContext";
-import { PostCard } from "../components/ui/PostCard";
+import { PostCard } from "../components/post/PostCard";
 import { useDebounce } from "../customHooks/UseDebounce";
 import { api } from "../service/api";
 

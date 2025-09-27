@@ -54,8 +54,6 @@ export const Profile = () => {
           </button>
         </div>
       </main>
-
-      
       <ProfileSetting isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </div>
   );
