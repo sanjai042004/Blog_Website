@@ -1,147 +1,126 @@
-import { Link } from "react-router-dom";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 import { api } from "../../service/api";
-import { FaHandsClapping } from "react-icons/fa6";
-import { Avatar } from "../ui/Avatar";
+import { UserProfile } from "../author/UserProfile";
 
-
-const userName = (user) => user?.name || "Unknown";
-
-export const CommentSection = ({
-  postId,
-  comments,
-  setComments,
-  currentUser,
-  navigate,
-}) => {
+export const CommentSection = ({ postId, comments, setComments, currentUser, navigate }) => {
   const [newComment, setNewComment] = useState("");
   const [visibleComments, setVisibleComments] = useState(5);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeClap, setActiveClap] = useState(null);
 
-  // Add Comment
-  const handleAddComment = async () => {
-    if (!currentUser) {
-      navigate("/login");
-      return;
-    }
+  const addComment = async () => {
+    if (!currentUser) return navigate("/login");
     if (!newComment.trim()) return;
 
     try {
-      const res = await api.post(`/posts/${postId}/comments`, {
-        text: newComment.trim(),
-      });
-
-      // Update local state manually
-      setComments((prev) => [res.data.comment, ...prev]);
+      setIsLoading(true);
+      const res = await api.post(`/posts/${postId}/comments`, { text: newComment });
+      setComments([res.data.comment, ...comments]);
       setNewComment("");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to add comment");
+    } catch {
+      alert("Failed to add comment");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Clap Comment
-  const handleClap = async (commentId) => {
+  const clapComment = async (id) => {
     try {
-      const res = await api.post(`/posts/${postId}/comments/${commentId}/clap`);
-
-      setComments((prev) =>
-        prev.map((c) =>
-          c._id === commentId
-            ? { ...c, claps: Array(res.data.totalClaps).fill("x") }
-            : c
-        )
-      );
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to clap");
+      setActiveClap(id);
+      const res = await api.post(`/posts/${postId}/comments/${id}/clap`);
+      setComments(comments.map(c => c._id === id ? { ...c, claps: res.data.totalClaps || 0 } : c));
+    } catch {
+      alert("Failed to clap");
+    } finally {
+      setActiveClap(null);
     }
   };
 
-  // Show More / Less
-  const handleShowMore = () => {
-    setVisibleComments((prev) => (prev === 5 ? comments.length : 5));
-  };
+  const toggleShowMore = () =>
+    setVisibleComments(visibleComments === 5 ? comments.length : 5);
 
   return (
-    <div className="mt-12">
+    <div className="mt-10">
+      {/* Current User Info */}
       {currentUser ? (
         <div className="flex items-center gap-3 mb-6">
           <Link to={`/author/${currentUser._id}`}>
-            <Avatar user={currentUser} size="w-10 h-10" />
+            <UserProfile user={currentUser} size="w-10 h-10" />
           </Link>
-          <p className="font-bold">{userName(currentUser)}</p>
+          <p className="font-bold">{currentUser.name}</p>
         </div>
       ) : (
         <p className="text-gray-500 mb-6">Login to comment</p>
       )}
 
-      <h3 className="text-xl font-bold mb-4">Responses ({comments.length})</h3>
-
+      {/* Add Comment Input */}
       {currentUser && (
         <div className="flex gap-2 mb-6">
           <input
             type="text"
-            placeholder="Write your comment..."
+            placeholder="Write a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-            className="flex-grow border-none bg-gray-100 outline-none rounded px-3 py-2"
+            onKeyDown={(e) => e.key === "Enter" && addComment()}
+            disabled={isLoading}
+            className="flex-grow bg-gray-100 rounded px-3 py-2 outline-none"
           />
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            onClick={handleAddComment}
+            onClick={addComment}
+            disabled={isLoading}
+            className={`bg-blue-500 text-white px-4 py-2 rounded ${
+              isLoading && "opacity-50 cursor-not-allowed"
+            }`}
           >
-            Respond
+            {isLoading ? "Posting..." : "Post"}
           </button>
         </div>
       )}
 
-      <div className="space-y-6 max-h-96 overflow-y-auto px-2">
+      {/* Comment List */}
+      <h3 className="text-lg font-semibold mb-3">
+        Responses ({comments.length})
+      </h3>
+
+      <div className="space-y-6 max-h-96 overflow-y-auto px-1">
         {comments.length === 0 ? (
-          <p className="text-gray-500">No responses yet.</p>
+          <p className="text-gray-500">No comments yet.</p>
         ) : (
-          comments.slice(0, visibleComments).map((c, index) => (
-            <div
-              key={c._id || `${c.user?._id || "nouser"}-${index}`}
-              className="border-b border-gray-200 pb-4"
-            >
+          comments.slice(0, visibleComments).map((c) => (
+            <div key={c._id} className="border-b border-gray-200 pb-4">
               <div className="flex items-center gap-3">
-                <Avatar user={c.user} size="w-9 h-9 text-xs" />
+                <UserProfile user={c.user} size="w-9 h-9" />
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {userName(c.user)}
-                  </p>
+                  <p className="font-semibold">{c.user?.name || "Unknown"}</p>
                   <p className="text-xs text-gray-500">
-                    {c.createdAt
-                      ? new Date(c.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : ""}
+                    {new Date(c.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
-              <p className="mt-5 text-gray-800 leading-relaxed">{c.text}</p>
+              <p className="mt-3 text-gray-800">{c.text}</p>
 
-              <div className="flex items-center gap-1 text-sm text-gray-500">
-                <button
-                  className="flex items-center gap-1 hover:text-black"
-                  onClick={() => handleClap(c._id)}
-                >
-                  <FaHandsClapping className="size-4" />
-                  <span>{c.claps?.length || 0}</span>
-                </button>
-              </div>
+              <button
+                onClick={() => clapComment(c._id)}
+                disabled={activeClap === c._id}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-black mt-2"
+              >
+                <Heart className="size-4" />
+                <span>{c.claps || 0}</span>
+              </button>
             </div>
           ))
         )}
 
         {comments.length > 5 && (
           <button
-            onClick={handleShowMore}
-            className="text-blue-600 text-sm mt-4 hover:underline"
+            onClick={toggleShowMore}
+            className="text-blue-600 text-sm mt-3 hover:underline"
           >
             {visibleComments === 5
-              ? `Show More (${comments.length - 5} more)`
+              ? `Show More (${comments.length - 5})`
               : "Show Less"}
           </button>
         )}

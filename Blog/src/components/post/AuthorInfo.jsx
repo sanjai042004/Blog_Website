@@ -1,20 +1,23 @@
 import { formatDate } from "../../utilis/utilis";
-import { Avatar } from "../ui/Avatar";
+import { UserProfile } from "../author/UserProfile";
 
-
-export const AuthorInfo = ({ author, onClick, showDate = false, date }) => {
+export const AuthorInfo = ({
+  author,
+  followersCount,
+  isFollowing,
+  toggleFollow,
+  onClick,
+  showDate = false,
+  date,
+}) => {
   if (!author) return null;
 
   return (
     <div className="flex items-center gap-2 mb-2 text-sm">
-    
-      <Avatar
-        user={author}
-        size="w-7 h-7 text-xs"
-        onClick={onClick}
-      />
+      {/* Author avatar */}
+      <UserProfile user={author} size="w-7 h-7 text-xs" onClick={onClick} />
 
-      {/* Author Info */}
+      {/* Author name and optional date */}
       <div className="flex flex-col">
         <span
           className="font-medium text-gray-700 hover:underline cursor-pointer"
@@ -25,11 +28,21 @@ export const AuthorInfo = ({ author, onClick, showDate = false, date }) => {
         </span>
 
         {showDate && date && (
-          <span className="text-xs text-gray-500">
-            {formatDate(date)}
-          </span>
+          <span className="text-xs text-gray-500">{formatDate(date)}</span>
         )}
       </div>
+
+      {/* Follow/Following button */}
+      {toggleFollow && (
+        <button
+          className={`ml-auto px-2 py-1 text-xs font-medium rounded ${
+            isFollowing ? "bg-gray-200 text-gray-700" : "bg-blue-600 text-white"
+          }`}
+          onClick={toggleFollow}
+        >
+          {isFollowing ? "Following" : "Follow"} ({followersCount})
+        </button>
+      )}
     </div>
   );
 };

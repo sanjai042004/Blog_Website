@@ -1,14 +1,14 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { api } from "../service/api";
-import { useAuth } from "../context/AuthContext";
-import { useAuthor } from "./hooks/useAuthor";
-import {CommentSection,PostActions,PostBlocks,PostHeader} from "../components/post"
+import {PostHeader,PostBlocks,PostActions,CommentSection,} from "../components/post";
+import { useAuth } from "../hooks/useAuth";
+import { useAuthor } from "../hooks/useAuthor";
 
 export const PostDetail = () => {
-  const { user: currentUser } = useAuth();
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,21 +17,18 @@ export const PostDetail = () => {
   const [clapCount, setClapCount] = useState(0);
   const [userClapped, setUserClapped] = useState(false);
 
-  // Fetch post details
   useEffect(() => {
     const fetchPost = async () => {
-      setLoading(true);
       try {
         const res = await api.get(`/posts/${id}`);
-        if (!res.data.success) throw new Error(res.data.message || "Post not found");
+        const data = res.data.post;
 
-        const fetchedPost = res.data.post;
-        setPost(fetchedPost);
-        setComments(fetchedPost.comments || []);
-        setClapCount(fetchedPost.claps?.length || 0);
-        setUserClapped(fetchedPost.claps?.some(c => c.user === currentUser?._id));
+        setPost(data);
+        setComments(data.comments || []);
+        setClapCount(data.claps?.length || 0);
+        setUserClapped(data.claps?.some((c) => c.user === currentUser?._id));
       } catch (err) {
-        setError(err.response?.data?.message || err.message);
+        setError(err.response?.data?.message || "Failed to load post");
       } finally {
         setLoading(false);
       }
@@ -40,63 +37,59 @@ export const PostDetail = () => {
     fetchPost();
   }, [id, currentUser]);
 
-  // Handle post clap
-  const handlePostClap = async () => {
+  const handleClap = async () => {
     if (!currentUser) return navigate("/login");
 
     try {
       const res = await api.post(`/posts/${id}/clap`);
       setClapCount(res.data.totalClaps);
       setUserClapped(res.data.action === "added");
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to clap");
+    } catch {
+      alert("Failed to clap the post");
     }
   };
 
-  // Author hook
   const { author, isFollowing, toggleFollow } = useAuthor(
     post?.author?._id,
     currentUser,
     post?.author
   );
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
+  if (loading) return <p className="text-center py-20">Loading post...</p>;
+  if (error) return <p className="text-center py-20 text-red-500">{error}</p>;
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-8">
-      {/* Back button */}
-      <Link to="/home" className="block text-gray-500 hover:text-gray-700 text-sm mb-4">
-        ← Back
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Link
+        to="/home"
+        className="text-gray-500 hover:text-gray-700 text-sm mb-4 block"
+      >
+        ← Back to Home
       </Link>
 
-      {/* Post header */}
       <PostHeader
         post={{ ...post, author }}
         currentUser={currentUser}
         isFollowing={isFollowing}
-        toggleFollow={currentUser?._id !== author?._id ? toggleFollow : undefined}
+        toggleFollow={
+          currentUser?._id !== author?._id ? toggleFollow : undefined
+        }
       />
 
-      {/* Post actions */}
       <PostActions
         postId={id}
         clapCount={clapCount}
         userClapped={userClapped}
-        setClapCount={setClapCount}
-        setUserClapped={setUserClapped}
-        handleClap={handlePostClap}
+        handleClap={handleClap}
         currentUser={currentUser}
         navigate={navigate}
       />
 
-      {/* Post content */}
-      <div className="prose max-w-none mb-10">
+      <div className="prose max-w-full mt-6 mb-10">
         <PostBlocks blocks={post.blocks} />
       </div>
 
-      {/* Comments section */}
-      <div className="mt-8 border-t pt-6">
+      <div className="border-t pt-6 mt-8">
         <CommentSection
           postId={id}
           comments={comments}

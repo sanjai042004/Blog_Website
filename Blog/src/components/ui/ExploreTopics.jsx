@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useSearch } from "../../context/SearchContext";
 
 export const ExploreTopics = () => {
-  const { setSearchTerm } = useSearch();
   const navigate = useNavigate();
 
   const topics = ["React", "JavaScript", "CSS", "HTML", "NodeJS"]; 

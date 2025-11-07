@@ -1,4 +1,4 @@
-import {createContext,useContext,useEffect,useState,useCallback,useMemo,} from "react";
+import { createContext, useEffect, useState, useCallback, useMemo } from "react";
 import { api } from "../service/api";
 import { getProfileImage } from "../utilis/utilis";
 
@@ -8,11 +8,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const updateUserState = (userData, bustCache = false) => {
-    if (!userData) {
-      setUser(null);
-      return null;
-    }
+  const updateUserState = useCallback((userData, bustCache = false) => {
+    if (!userData) return setUser(null);
 
     const formattedUser = {
       ...userData,
@@ -23,126 +20,121 @@ export const AuthProvider = ({ children }) => {
 
     setUser(formattedUser);
     return formattedUser;
-  };
+  }, []);
 
-  // Fetch profile from backend
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/auth/profile", {
-        withCredentials: true,
-      });
-
-      if (data.success)
-         return updateUserState(data.user);
-      setUser(null);
-      return null;
+      const { data } = await api.get("/auth/profile");
+      if (data.success && data.user) updateUserState(data.user);
+      else setUser(null);
     } catch {
       setUser(null);
-      return null;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateUserState]);
 
-
-useEffect(() => {
-  const cachedUser = localStorage.getItem("authUser");
-  if (cachedUser) {
-    try {
-      const parsed = JSON.parse(cachedUser);
-      setUser(parsed);
+  useEffect(() => {
+    const cachedUser = localStorage.getItem("authUser");
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
+        setTimeout(fetchProfile, 300);
+      } catch {
+        localStorage.removeItem("authUser");
+        setLoading(false);
+      }
+    } else {
       setLoading(false);
-      fetchProfile();
-    } catch {
-      localStorage.removeItem("authUser");
     }
-  } else {
-    setLoading(false); 
-  }
-}, [fetchProfile]);
-
+  }, [fetchProfile]);
 
   useEffect(() => {
     if (user) localStorage.setItem("authUser", JSON.stringify(user));
     else localStorage.removeItem("authUser");
   }, [user]);
 
+  const authRequest = useCallback(
+    async (endpoint, payload) => {
+      try {
+        const { data } = await api.post(endpoint, payload);
 
-  const authRequest = async (endpoint, payload) => {
-    try {
-      const { data } = await api.post(endpoint, payload, {
-        withCredentials: true,
-      });
+        if (!data.success) {
+          return { success: false, message: data.message };
+        }
 
-      if (data.success) {
+        if (data.accessToken)
+          localStorage.setItem("accessToken", data.accessToken);
+
         if (data.user) {
           return { success: true, user: updateUserState(data.user, true) };
         }
-        return { success: true, user: await fetchProfile() };
+
+        const profile = await fetchProfile();
+        return { success: true, user: profile };
+      } catch (err) {
+        return {
+          success: false,
+          message: err.response?.data?.message || err.message,
+        };
       }
+    },
+    [fetchProfile, updateUserState]
+  );
 
-      return { success: false, message: data.message };
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || err.message,
-      };
-    }
-  };
+  const register = (formData) => authRequest("/auth/register", formData);
+  const login = (formData) => authRequest("/auth/login", formData);
+  const googleLogin = (token) => authRequest("/auth/google-login", { token });
 
-  // Auth actions
-  const register = (name, email, password) =>
-    authRequest("/auth/register", { name, email, password });
-  
-  const login = (email, password) =>
-    authRequest("/auth/login", { email, password });
-
-  const googleLogin = (token) => authRequest("/auth/google", { token });
-
-
-  const refreshAccessToken = async () => {
+  const logout = useCallback(async () => {
     try {
-      const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
-      if (data.success) {
-        return { ...data, user: await fetchProfile() };
+      await api.post("/auth/logout");
+    } catch {}
+    setUser(null);
+    localStorage.removeItem("authUser");
+    localStorage.removeItem("accessToken");
+  }, []);
+
+  const updateProfile = useCallback(
+    async (form) => {
+      try {
+        const { data } = await api.put("/auth/profile", form, {
+          withCredentials: true,
+        });
+
+        if (data.success && data.user) {
+          updateUserState(data.user, true);
+          return { success: true };
+        }
+
+        return { success: false, message: data.message || "Failed to update profile." };
+      } catch (err) {
+        return {
+          success: false,
+          message: err.response?.data?.message || "Failed to update profile.",
+        };
       }
-      return { success: false };
-    } catch {
-      return { success: false };
-    }
-  };
-
-  // Logout
-  const logout = async () => {
-    try {
-      await api.post("/auth/logout", {}, { withCredentials: true });
-    } catch (err) {
-      console.error("Logout Error:", err.response?.data || err.message);
-    } finally {
-      setUser(null);
-    }
-  };
+    },
+    [updateUserState]
+  );
 
   const value = useMemo(
     () => ({
       user,
+      loading,
+      isAuthenticated: !!user,
       register,
       login,
       googleLogin,
-      refreshAccessToken,
       logout,
       fetchProfile,
-      loading,
+      updateProfile,
     }),
-    [user, loading]
+    [user, loading, register, login, googleLogin, logout, fetchProfile, updateProfile]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+export { AuthContext };

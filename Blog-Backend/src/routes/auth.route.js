@@ -1,20 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../../uploads/upload");
-const {register,login,googleLogin,refreshToken,getProfile,logout,updateProfile, } = require("../controllers/auth.controller");
 
+const { register, login, googleLogin, refreshToken, logout } = require("../controllers/auth.controller");
 const { authenticateUser } = require("../middlewares/authenticateUser");
+const { forgotPassword, resetPassword, verifyOtp, resendOtp } = require("../controllers/otp.controllers");
+const { 
+  getProfile, 
+  updateProfile, 
+  deactivateAccount, 
+  reactivateAccount, 
+  deleteAccount, 
+  changePassword 
+} = require("../controllers/user.controllers");
 
-
+// Auth routes
 router.post("/register", register);
 router.post("/login", login);
-router.post("/google", googleLogin);
-router.post("/refresh", refreshToken);
 router.post("/logout", logout);
+router.post("/refresh", refreshToken);
+router.post("/google-login", googleLogin);
 
+// OTP routes
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+router.post("/verify-otp", verifyOtp);
+router.post("/resend-otp", resendOtp);
 
+// User routes
 router.get("/profile", authenticateUser, getProfile);
 router.put("/profile", authenticateUser, upload.single("profileImage"), updateProfile);
-
+router.put("/deactivate", authenticateUser, deactivateAccount);
+router.post("/reactivate", reactivateAccount);
+router.delete("/delete", authenticateUser, deleteAccount);
+router.put("/change-password", authenticateUser, changePassword);
 
 module.exports = router;

@@ -1,12 +1,18 @@
-import { FaRegCommentDots } from "react-icons/fa";
-import { FaHandsClapping } from "react-icons/fa6";
-import { BsBookmark, BsShare, BsThreeDots } from "react-icons/bs";
+import { Heart, MessageCircle, Bookmark, Share, Ellipsis } from "lucide-react";
 import { api } from "../../service/api";
 
-export const PostActions = ({postId,clapCount,userClapped,setClapCount,setUserClapped,currentUser,navigate,}) => {
+export const PostActions = ({
+  postId,
+  clapCount,
+  userClapped,
+  setClapCount,
+  setUserClapped,
+  currentUser,
+  navigate,
+}) => {
   const handleClap = async () => {
     if (!currentUser) {
-      navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -21,37 +27,36 @@ export const PostActions = ({postId,clapCount,userClapped,setClapCount,setUserCl
   };
 
   return (
-    <div className="flex items-center justify-between border-t border-b border-gray-200 py-4 mb-12">
-    
-      <div className="flex items-center gap-8 text-gray-600">
-        {/* Clap */}
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-t border-b border-gray-200 py-4 mb-12 w-full gap-4 relative">
+      <div className="flex flex-row flex-wrap items-center gap-6 text-gray-600">
         <button
           onClick={handleClap}
-          className="flex items-center gap-2 hover:text-orange-500 transition-colors"
+          className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer"
         >
-          <FaHandsClapping
-            className={`size-5 ${userClapped ? "text-orange-500" : ""}`}
+          <Heart
+            size={16}
+            className={`text-xl ${userClapped ? "text-orange-500" : ""}`}
           />
           <span className="text-sm font-medium">{clapCount}</span>
         </button>
 
-        {/* Comment */}
-        <button className="flex items-center gap-2 hover:text-blue-500 transition-colors">
-          <FaRegCommentDots className="size-5" />
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className="flex items-center gap-2 hover:text-blue-500 transition-colors cursor-pointer"
+        >
+          <MessageCircle size={16} />
           <span className="text-sm font-medium">Comment</span>
         </button>
       </div>
-
-      
-      <div className="flex items-center gap-6 text-gray-600">
-        <button className="hover:text-black transition-colors">
-          <BsBookmark className="size-5" />
+      <div className="flex flex-row flex-wrap items-center gap-6 text-gray-600">
+        <button className="hover:text-black transition-colors cursor-pointer">
+          <Bookmark size={16} />
         </button>
-        <button className="hover:text-black transition-colors">
-          <BsShare className="size-5" />
+        <button className="hover:text-black transition-colors cursor-pointer">
+          <Share size={16} />
         </button>
-        <button className="hover:text-black transition-colors">
-          <BsThreeDots className="size-5" />
+        <button className="hover:text-black transition-colors cursor-pointer">
+          <Ellipsis size={16} />
         </button>
       </div>
     </div>

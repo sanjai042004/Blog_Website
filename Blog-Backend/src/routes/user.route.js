@@ -1,6 +1,6 @@
 const express = require("express");
+const { getAuthorWithPosts } = require("../controllers/user.controllers");
 const router = express.Router();
-const { getAuthorWithPosts } = require("../controllers/auth.controller");
 
 router.get("/author/:authorId", getAuthorWithPosts);
 

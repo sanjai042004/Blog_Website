@@ -1,54 +1,63 @@
 import { Link } from "react-router-dom";
-import { Avatar } from "../ui/Avatar";
 import { calculateReadTime } from "../../utilis/calculateReadTime";
+import { formatDate } from "../../utilis/utilis";
+import { UserProfile } from "../author/UserProfile";
 
-export const PostHeader = ({ post, currentUser, isFollowing, toggleFollow }) => {
-  const author = post?.author;
+export const PostHeader = ({
+  post,
+  currentUser,
+  isFollowing,
+  toggleFollow,
+}) => {
+  if (!post) return null;
 
-  const showFollowButton = currentUser && author && currentUser._id !== author._id;
-
+  const { author, title, blocks, createdAt } = post;
   const authorName = author?.name || "Unknown";
 
+  const canFollow = currentUser && author && currentUser._id !== author._id;
+
   const readTime = calculateReadTime(
-    post?.blocks?.map((b) => b.content).join(" ") || ""
+    Array.isArray(blocks) ? blocks.map((b) => b.content).join(" ") : ""
   );
 
-  const formattedDate = post?.createdAt
-    ? new Date(post.createdAt).toLocaleDateString()
-    : "";
+  const date = formatDate(createdAt);
 
   return (
-    <>
-      <h1 className="text-5xl font-extrabold mb-12">{post?.title}</h1>
+    <div className="mb-10">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 break-words">
+        {title}
+      </h1>
 
-      <div className="flex items-center gap-3 mb-10">
-        <Link to={author ? `/author/${author._id}` : "#"}>
-          <Avatar user={author || null} size="w-10 h-10 text-sm" />
-        </Link>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Link to={author ? `/author/${author._id}` : "#"}>
+            <UserProfile user={author} size="w-10 h-10" />
+          </Link>
 
-        <div className="flex items-center gap-2">
-          <p className="font-bold">{authorName}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold">{authorName}</p>
 
-          {showFollowButton ? (
-            <button
-              className={`border px-3 py-1 rounded-full text-sm ${
-                isFollowing ? "bg-gray-200" : "hover:bg-gray-100"
-              }`}
-              onClick={toggleFollow}
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </button>
-          ) : currentUser?._id === author?._id ? (
-            <span className="text-sm text-gray-500 px-3 py-1 border rounded-full">
-              You
-            </span>
-          ) : null}
+            {canFollow && (
+              <button
+                onClick={toggleFollow}
+                className="text-blue-500 text-sm hover:underline"
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+            )}
 
-          <p className="text-sm text-gray-500">
-            {readTime} · {formattedDate}
-          </p>
+            {currentUser && author && currentUser._id === author._id && (
+              <span className="text-gray-500 text-xs border px-2 py-1 rounded-full">
+                You
+              </span>
+            )}
+          </div>
         </div>
+
+        <p className="text-sm text-gray-500">
+          {readTime} · {date}
+        </p>
       </div>
-    </>
+    </div>
   );
 };

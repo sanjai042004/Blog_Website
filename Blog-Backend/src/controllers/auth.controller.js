@@ -1,8 +1,8 @@
 const User = require("../models/user.model");
-const Post = require("../models/post.model");
-const upload = require("../../uploads/upload");
+// const upload = require("../../uploads/upload");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
+const bcrypt = require("bcrypt");
 const {
   createTokens,
   attachTokens,
@@ -12,70 +12,90 @@ const {
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Register
+const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
+
+const comparePassword = async (entered, hashed) => {
+  return await bcrypt.compare(entered, hashed);
+};
+
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    if (!email || !password)
+    if (!email || !password || !name)
       return res
         .status(400)
-        .json({ success: false, message: "Email & password required" });
+        .json({ success: false, message: "All fields are required" });
 
     if (password.length < 8)
-      return res
-        .status(400)
-        .json({ success: false, message: "Password must be 8+ chars" });
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
 
-    const lowerEmail = email.toLowerCase();
-    if (await User.findOne({ email: lowerEmail }))
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already in use" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(409).json({ message: "Email already registered" });
 
-    const user = await User.create({
-      name: name || lowerEmail.split("@")[0],
-      email: lowerEmail,
-      password,
+    const hashedPassword = await hashPassword(password);
+
+    const newUser = new User({
+      name: name.trim(),
+      email: email.trim(),
+      password: hashedPassword,
       authProvider: "local",
     });
+    await newUser.save();
 
-    const tokens = createTokens(user);
-    user.refreshTokens.push(tokens.refreshToken);
-    await user.save();
-
+    const tokens = createTokens(newUser);
     attachTokens(res, tokens);
-    res.status(201).json({ success: true, user: publicUser(user) });
+
+    return res.status(201).json({
+      success: true,
+      message: "Registration successful!",
+      accessToken: tokens.accessToken,
+      user: publicUser(newUser),
+    });
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during registration" });
   }
 };
 
-//Login
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
-      "+password"
-    );
 
-    if (!user || !(await user.comparePassword(password)))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
+    if (!email || !password)
+      return res.status(400).json({ message: "All fields are required" });
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user)
+      return res.status(401).json({ message: "Invalid email or password" });
+
+    const isMatch = await comparePassword(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid email or password" });
 
     const tokens = createTokens(user);
-    user.refreshTokens.push(tokens.refreshToken);
-    await user.save();
-
     attachTokens(res, tokens);
-    res.json({ success: true, user: publicUser(user) });
-  } catch {
-    res.status(500).json({ success: false, message: "Server error" });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful!",
+      accessToken: tokens.accessToken,
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error("Login Error:", err);
+    return res.status(500).json({ message: "Server error during login" });
   }
 };
 
-//Google Login
 const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -85,7 +105,7 @@ const googleLogin = async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, sub: googleId } = ticket.getPayload();
+    const { email, name, sub: googleId, picture } = ticket.getPayload();
 
     let user = await User.findOne({ email });
 
@@ -95,23 +115,31 @@ const googleLogin = async (req, res) => {
         email,
         googleId,
         authProvider: "google",
-        profileImage: "",
+        profileImage: picture || "",
       });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      user.authProvider = "google";
+      await user.save();
     }
+
     const tokens = createTokens(user);
-
-    user.refreshTokens.push(tokens.refreshToken);
-    await user.save();
-
     attachTokens(res, tokens);
-    res.json({ success: true, user: publicUser(user) });
+
+    return res.status(200).json({
+      success: true,
+      message: "Google login successful!",
+      accessToken: tokens.accessToken,
+      user: publicUser(user),
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Google Login Error:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during Google login" });
   }
 };
 
-//Refresh
 const refreshToken = async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
@@ -121,6 +149,7 @@ const refreshToken = async (req, res) => {
         .json({ success: false, message: "No refresh token" });
 
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
     const user = await User.findById(decoded.id);
     if (!user || !user.refreshTokens.includes(token))
       return res
@@ -142,81 +171,31 @@ const refreshToken = async (req, res) => {
   }
 };
 
-//Logout
 const logout = async (req, res) => {
   try {
     const token = req.cookies?.refreshToken;
+
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-      const user = await User.findById(decoded.id);
-      if (user) {
-        user.refreshTokens = user.refreshTokens.filter((t) => t !== token);
-        await user.save();
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (user) {
+          user.refreshTokens = user.refreshTokens.filter((t) => t !== token);
+          await user.save();
+        }
+      } catch (err) {
+        console.warn("Invalid refresh token during logout:", err.message);
       }
     }
-  } finally {
     clearCookies(res);
-    res.json({ success: true, message: "Logged out" });
-  }
-};
-
-//Profile
-const getProfile = async (req, res) => {
-  const user = await User.findById(req.user.id).select(
-    "-password -refreshTokens"
-  );
-  if (!user)
-    return res.status(404).json({ success: false, message: "User not found" });
-  res.json({ success: true, user: publicUser(user) });
-};
-
-//Author + Posts
-const getAuthorWithPosts = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.authorId)
-      .select("-password -refreshTokens")
-      .populate("followers", "name profileImage")
-      .populate("following", "name profileImage");
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Author not found" });
-    }
-
-    const posts = await Post.find({ author: user._id })
-      .populate("author", "name profileImage")
-      .sort({ createdAt: -1 });
-
-    res.json({ success: true, user, posts });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-//Update Profile
-const updateProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password ");
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-
-    const { name, bio } = req.body;
-    if (name) user.name = name;
-    if (bio) user.bio = bio;
-
-    if (req.file) {
-      user.profileImage = `/uploads/${req.file.filename}`;
-    }
-
-    await user.save();
-    res.json({ success: true, user: publicUser(user) });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    clearCookies(res);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during logout" });
   }
 };
 
@@ -226,7 +205,4 @@ module.exports = {
   googleLogin,
   refreshToken,
   logout,
-  getProfile,
-  getAuthorWithPosts,
-  updateProfile,
 };
