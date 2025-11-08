@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: "https://codeverse-b.netlify.app", 
   credentials: true                
 }));
 
@@ -32,6 +32,8 @@ const connectToMongoDB = async () => {
     process.exit(1);
   }
 };
+app.get("/", (_, res) => res.send("Welcome to TODO backend"));
+
 
 // Routes
 app.use("/api", routes);
