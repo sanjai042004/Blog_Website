@@ -38,7 +38,7 @@ export const InputField = forwardRef(
       disabled,
       ref,
       className:
-        "w-full px-4 py-2 border border-gray-300 rounded-lg outline-none disabled:opacity-50 bg-white",
+        "w-full px-4 py-2 border border-gray-300 rounded-lg outline-none disabled:opacity-50 bg-white resize-none",
       autoComplete: "off",
     };
 

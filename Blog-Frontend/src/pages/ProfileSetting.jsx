@@ -65,31 +65,33 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 px-4"
+      className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 px-3 sm:px-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md transition-transform duration-300 ease-in-out scale-100"
+        className="relative bg-white rounded-2xl shadow-2xl p-5 sm:p-8 w-full max-w-md sm:max-w-lg transition-transform duration-300 ease-in-out scale-100 overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
+          className="absolute top-3 right-4 text-gray-500 hover:text-black text-2xl sm:text-xl cursor-pointer"
         >
           ✕
         </button>
 
-        <h2 className="text-center text-2xl font-semibold mb-6">
+        {/* Title */}
+        <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
           Edit Profile
         </h2>
 
         {/* Profile Image */}
         <div className="flex flex-col items-center mb-6">
-          <div className="relative w-28 h-28 rounded-full overflow-hidden group">
-            <UserProfile user={user} src={preview} size="w-28 h-28 text-xl" />
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden group">
+            <UserProfile user={user} src={preview} size="w-24 h-24 sm:w-28 sm:h-28 text-xl" />
             <label
               htmlFor="fileInput"
-              className="absolute inset-0 bg-black/50 text-white text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all"
+              className="absolute inset-0 bg-black/50 text-white text-xs sm:text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all"
             >
               Change Photo
             </label>
@@ -112,7 +114,7 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg px-4 py-2 border border-gray-300 outline-none"
+            className="w-full rounded-lg px-4 py-2 border border-gray-300 outline-none focus:ring-2 focus:ring-black/30 text-sm sm:text-base"
           />
         </div>
 
@@ -126,22 +128,22 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
             onChange={(e) => setBio(e.target.value)}
             rows={4}
             placeholder="Write a few lines about yourself..."
-            className="w-full rounded-lg px-4 py-2 border border-gray-300  outline-none resize-none"
+            className="w-full rounded-lg px-4 py-2 border border-gray-300 outline-none resize-none focus:ring-2 focus:ring-black/30 text-sm sm:text-base"
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <button
             onClick={handleSave}
             disabled={loading || !name.trim()}
-            className="flex-1 py-2.5 bg-black text-white rounded-lg  transition disabled:opacity-50"
+            className="w-full sm:flex-1 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+            className="w-full sm:flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer text-sm sm:text-base"
           >
             Cancel
           </button>
