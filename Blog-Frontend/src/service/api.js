@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://blog-website-1-0gmj.onrender.com/api/",
+  baseURL: "https://blog-website-1-o9mj.onrender.com",
   withCredentials: true,
 });
 
@@ -70,6 +70,7 @@ api.interceptors.response.use(
       processQueue(err);
       localStorage.removeItem("accessToken");
 
+      // Optional: redirect to login if refresh fails
       if ([401, 403].includes(err.response?.status)) {
         window.location.href = "/login";
       }

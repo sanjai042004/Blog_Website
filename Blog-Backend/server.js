@@ -18,6 +18,7 @@ app.use(cookieParser());
 
 app.use(cors({
   origin: "https://codeverse-b.netlify.app", 
+    methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true                
 }));
 
