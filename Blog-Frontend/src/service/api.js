@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://blog-website-1-o9mj.onrender.comapi/",
+  baseURL: "https://blog-website-1-o9mj.onrender.com/api",
   withCredentials: true,
 });
 
