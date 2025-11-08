@@ -17,9 +17,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-  origin: "https://codeverse-b.netlify.app", 
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true                
+  origin: [
+    "https://codeverse-b.netlify.app",
+    /\.netlify\.app$/  
+  ],
+  credentials: true,
 }));
 
 const mongoOptions = { maxPoolSize: 20, serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000 };
