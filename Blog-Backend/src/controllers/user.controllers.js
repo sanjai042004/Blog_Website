@@ -3,6 +3,7 @@ const Post = require("../models/post.model");
 const { clearCookies, publicUser } = require("../utils/auth");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const upload = require("../config/cloudinary");
 
 const getProfile = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password ");
+    const user = await User.findById(req.user.id).select("-password");
     if (!user)
       return res
         .status(404)
@@ -29,14 +30,19 @@ const updateProfile = async (req, res) => {
     if (name) user.name = name;
     if (bio) user.bio = bio;
 
-    if (req.file) {
-      user.profileImage = `/uploads/${req.file.filename}`;
+
+    if (req.file && req.file.path) {
+      user.profileImage = req.file.path; 
     }
 
     await user.save();
-    res.json({ success: true, user: publicUser(user) });
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: publicUser(user),
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Profile update error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

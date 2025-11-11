@@ -1,11 +1,5 @@
 const express = require("express");
-const {
-  followUser,
-  unFollowUser,
-  getFollowers,
-  getFollowing,
-  followStatus,
-} = require("../controllers/follow.controllers");
+const {followUser,unFollowUser,getFollowers,getFollowing,followStatus,} = require("../controllers/follow.controllers");
 const { authenticateUser } = require("../middlewares/authenticateUser");
 
 const router = express.Router();

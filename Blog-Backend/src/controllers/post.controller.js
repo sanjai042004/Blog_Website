@@ -22,7 +22,7 @@ const parseBlocks = (blocks, files) => {
 
   return parsed.map((b) => {
     if (b.type === "image" && b.imageFile && files[fileIndex]) {
-      b.media = `/uploads/${files[fileIndex].filename}`;
+      b.media = files[fileIndex].path; 
       fileIndex++;
     }
     delete b.preview;
@@ -30,6 +30,8 @@ const parseBlocks = (blocks, files) => {
     return b;
   });
 };
+
+
 
 // Create Post
 const createPost = async (req, res) => {

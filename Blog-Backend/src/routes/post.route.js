@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const path = require("path");
-const upload = require("../../uploads/upload");
+const upload = require("../config/cloudinary");
 const {getPosts,getPostById,createPost,updatePost,deletePost,addComment,clapPost,clapComment} = require("../controllers/post.controller");
 const { authenticateUser } = require("../middlewares/authenticateUser");
 

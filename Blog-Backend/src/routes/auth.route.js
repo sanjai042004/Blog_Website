@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../../uploads/upload");
+const upload = require("../config/cloudinary");
 
 const { register, login, googleLogin, refreshToken, logout } = require("../controllers/auth.controller");
 const { authenticateUser } = require("../middlewares/authenticateUser");
