@@ -66,7 +66,7 @@ api.interceptors.response.use(
       localStorage.removeItem("accessToken");
 
       if ([401, 403].includes(err.response?.status)) {
-        window.location.href = "/";
+        window.location.href = "/home";
       }
 
       return Promise.reject(err);
