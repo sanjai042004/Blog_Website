@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// Reply schema 
 const replySchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -10,7 +9,6 @@ const replySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Comment schema
 const commentSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -21,7 +19,6 @@ const commentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Block schema for post 
 const blockSchema = new mongoose.Schema(
   {
     type: {
@@ -29,23 +26,26 @@ const blockSchema = new mongoose.Schema(
       enum: ["subtitle", "text", "image", "youtube"],
       default: "text",
     },
-    content: { type: String, trim: true },
-    media: { type: String },
-    youtubeEmbed: { type: String },
+    content: String,
+    media: String,
+    youtubeEmbed: String,
   },
   { _id: false }
 );
 
-// Post schema
 const postSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
-    subtitle: { type: String, trim: true },
+    subtitle: String,
     blocks: [blockSchema],
-    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     claps: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    comments: [commentSchema], 
-    image: { type: String },
+    comments: [commentSchema],
+    image: String,
     readingTime: { type: Number, default: 0 },
   },
   { timestamps: true }
