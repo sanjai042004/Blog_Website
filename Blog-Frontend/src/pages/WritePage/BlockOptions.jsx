@@ -58,7 +58,7 @@ export const BlockOptions = ({
               type="button"
               onClick={onClick}
               title={tooltip}
-              className="transition-colors hover:text-blue-600"
+              className="transition-colors hover:text-blue-600 cursor-pointer "
             >
               <Icon className="text-gray-500" />
             </button>
