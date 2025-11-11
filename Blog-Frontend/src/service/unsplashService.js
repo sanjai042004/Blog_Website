@@ -6,7 +6,6 @@ export const fetchUnsplashImage = async (query, page = 1) => {
 
     const data = await res.json();
 
-    // return an array of objects with id + url
     return data.results.map((img) => ({
       id: img.id,
       url: img.urls.small,

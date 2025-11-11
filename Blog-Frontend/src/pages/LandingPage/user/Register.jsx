@@ -17,7 +17,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const emailRef = useRef();
   const passwordRef = useRef();
 
-  const from = location.state?.from?.pathname || "/home"; // 👈 add this
+  const from = location.state?.from?.pathname || "/home"; 
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -48,7 +48,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
       if (res.success) {
         setMessage(res.message || "✅ Registration successful!");
         setTimeout(() => {
-          navigate(from, { replace: true }); // 👈 redirect fix
+          navigate(from, { replace: true });
           handleClose();
         }, 1000);
       } else {
