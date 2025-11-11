@@ -15,12 +15,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use(
-  cors({
-    origin: "https://codeverse-b.netlify.app",
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://codeverse-b.netlify.app"
+  ],
+  credentials: true,
+}));
+
 
 // MongoDB Connection
 const connectToMongoDB = async () => {
