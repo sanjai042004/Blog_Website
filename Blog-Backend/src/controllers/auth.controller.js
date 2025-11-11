@@ -1,5 +1,5 @@
 const User = require("../models/user.model");
-// const upload = require("../../uploads/upload");
+const upload = require("../../uploads/upload");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcrypt");
