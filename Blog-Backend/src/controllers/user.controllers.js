@@ -2,157 +2,136 @@ const User = require("../models/user.model");
 const Post = require("../models/post.model");
 const { clearCookies, publicUser } = require("../utils/auth");
 const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
-const upload = require("../config/cloudinary");
 
+// Helper functions
+const hashPassword = (plain) => bcrypt.hash(plain, 10);
+const comparePassword = (plain, hashed) => bcrypt.compare(plain, hashed);
+
+// Get Profile
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select(
-      "-password -refreshTokens"
-    );
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.user.id).select("-password -refreshTokens");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
     res.json({ success: true, user: publicUser(user) });
-  } catch (err) {
-    res.status(500).json({ message: "Server error fetching profile" });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error fetching profile" });
   }
 };
 
+// Update Profile
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    if (!user)
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
     const { name, bio } = req.body;
-
     if (name) user.name = name;
     if (bio) user.bio = bio;
 
-
-    if (req.file && req.file.path) {
-      user.profileImage = req.file.path; 
+    if (req.file) {
+      user.profileImage = req.file.path;
+      user.profileImagePublicId = req.file.filename || null;
     }
 
     await user.save();
-    res.json({
-      success: true,
-      message: "Profile updated successfully",
-      user: publicUser(user),
-    });
-  } catch (err) {
-    console.error("Profile update error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.json({ success: true, message: "Profile updated successfully", user: publicUser(user) });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error updating profile" });
   }
 };
 
+// Get Author + Posts
 const getAuthorWithPosts = async (req, res) => {
+  const { authorId } = req.params;
+  if (!authorId) return res.status(400).json({ success: false, message: "Invalid author ID" });
+
   try {
-    const { authorId } = req.params;
+    const [user, posts] = await Promise.all([
+      User.findById(authorId)
+        .select("-password -refreshTokens")
+        .populate("followers", "name profileImage")
+        .populate("following", "name profileImage"),
+      Post.find({ author: authorId })
+        .populate("author", "name profileImage")
+        .sort({ createdAt: -1 }),
+    ]);
 
-    if (!authorId || !mongoose.Types.ObjectId.isValid(authorId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid author ID" });
-    }
-
-    const user = await User.findById(authorId)
-      .select("-password -refreshTokens")
-      .populate("followers", "name profileImage")
-      .populate("following", "name profileImage");
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Author not found" });
-    }
-
-    const posts = await Post.find({ author: user._id })
-      .populate("author", "name profileImage")
-      .sort({ createdAt: -1 });
-
+    if (!user) return res.status(404).json({ success: false, message: "Author not found" });
     res.json({ success: true, user, posts });
-  } catch (err) {
-    console.error("getAuthorWithPosts error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch {
+    res.status(500).json({ success: false, message: "Server error fetching author" });
   }
 };
 
+// Deactivate Account
 const deactivateAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
     user.isDeactivated = true;
     await user.save();
-
     clearCookies(res);
     res.json({ success: true, message: "Account deactivated successfully" });
-  } catch (err) {
-    console.error("Deactivate error:", err);
-    res.status(500).json({ message: "Error deactivating account" });
+  } catch {
+    res.status(500).json({ success: false, message: "Error deactivating account" });
   }
 };
 
 // Reactivate Account
 const reactivateAccount = async (req, res) => {
+  const { email } = req.body;
   try {
-    const { email } = req.body;
     const user = await User.findOne({ email });
-
     if (!user || !user.isDeactivated)
-      return res
-        .status(400)
-        .json({ message: "Account not deactivated or not found" });
+      return res.status(400).json({ success: false, message: "Account not deactivated or not found" });
 
     user.isDeactivated = false;
     await user.save();
-
     res.json({ success: true, message: "Account reactivated successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Error reactivating account" });
+  } catch {
+    res.status(500).json({ success: false, message: "Error reactivating account" });
   }
 };
 
-//  Permanently Delete Account
+// Permanently Delete Account
 const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
-    await Post.deleteMany({ author: userId });
-    await User.findByIdAndDelete(userId);
+    await Promise.all([Post.deleteMany({ author: userId }), User.findByIdAndDelete(userId)]);
     clearCookies(res);
     res.json({ success: true, message: "Account permanently deleted" });
-  } catch (err) {
-    res.status(500).json({ message: "Error deleting account" });
+  } catch {
+    res.status(500).json({ success: false, message: "Error deleting account" });
   }
 };
 
 // Change Password
 const changePassword = async (req, res) => {
-  try {
-    const { oldPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id).select("+password");
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword)
+    return res.status(400).json({ success: false, message: "Both old and new passwords required" });
 
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (!(await comparePassword(oldPassword, user.password)))
-      return res.status(400).json({ message: "Incorrect old password" });
+  try {
+    const user = await User.findById(req.user.id).select("+password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const isMatch = await comparePassword(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Incorrect old password" });
 
     user.password = await hashPassword(newPassword);
     await user.save();
-
     res.json({ success: true, message: "Password updated successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Error changing password" });
+  } catch {
+    res.status(500).json({ success: false, message: "Error changing password" });
   }
 };
 
 module.exports = {
-  changePassword,
-  reactivateAccount,
-  deactivateAccount,
-  deleteAccount,
-  getAuthorWithPosts,
   getProfile,
   updateProfile,
+  getAuthorWithPosts,
+  deactivateAccount,
+  reactivateAccount,
+  deleteAccount,
+  changePassword,
 };
