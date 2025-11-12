@@ -34,7 +34,6 @@ export const Router = createBrowserRouter([
     ],
   },
 
-  // Protected routes (requires login)
   {
     element: <ProtectedRoute />,
     children: [
@@ -56,9 +55,7 @@ export const Router = createBrowserRouter([
     ],
   },
 
-  // Other public pages
   { path: "/reset-password", element: <ResetPassword /> },
 
-  // Catch-all 404
   { path: "*", element: <NotFound /> },
 ]);
