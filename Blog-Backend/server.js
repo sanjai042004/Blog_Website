@@ -12,13 +12,16 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://codeverse-b.netlify.app"
-  ],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://codeverse-b.netlify.app",
+      "https://6916383a956f210008c00fa7--codeverse-b.netlify.app",
+    ],
+    credentials: true,
+  })
+);
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -46,5 +49,7 @@ app.use((err, req, res, next) => {
 
 // Start Server
 connectDB().then(() => {
-  app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+  app.listen(PORT, () =>
+    console.log(`🚀 Server running on http://localhost:${PORT}`)
+  );
 });
