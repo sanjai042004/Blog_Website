@@ -30,7 +30,7 @@ export const Home = () => {
     <div className="min-h-screen px-4 sm:px-6 md:px-10 py-8">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 justify-center">
 
-        {/* Main Post Section */}
+        {/* Post Section */}
         <div className="w-full lg:w-[900px]">
            <h2 className="text-center text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">
            Latest Post
