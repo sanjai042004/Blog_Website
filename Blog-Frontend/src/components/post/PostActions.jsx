@@ -1,5 +1,6 @@
 import { Heart, MessageCircle, Bookmark, Share, Ellipsis } from "lucide-react";
 import { api } from "../../service/api";
+import { useState } from "react";
 
 export const PostActions = ({
   postId,
@@ -10,9 +11,11 @@ export const PostActions = ({
   currentUser,
   navigate,
 }) => {
+  const [showComments, setShowComments] = useState(false);
+
   const handleClap = async () => {
     if (!currentUser) {
-      navigate("/");
+      navigate("/login");
       return;
     }
 
@@ -27,36 +30,43 @@ export const PostActions = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-t border-b border-gray-200 py-4 mb-12 w-full gap-4 relative">
-      <div className="flex flex-row flex-wrap items-center gap-6 text-gray-600">
+    <div className="flex justify-between items-center flex-wrap border-t border-b border-gray-200 py-4 mb-12 w-full gap-4 sm:gap-6 text-gray-600">
+      {/* Left side actions */}
+      <div className="flex items-center flex-wrap gap-6 sm:gap-8">
+        {/* Clap */}
         <button
           onClick={handleClap}
-          className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer"
+          className="flex items-center gap-2 hover:text-orange-500 transition-colors"
         >
           <Heart
-            size={16}
-            className={`text-xl ${userClapped ? "text-orange-500" : ""}`}
+            size={18}
+            className={`${
+              userClapped ? "text-orange-500 fill-orange-500" : ""
+            }`}
           />
           <span className="text-sm font-medium">{clapCount}</span>
         </button>
 
+        {/* Comment */}
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2 hover:text-blue-500 transition-colors cursor-pointer"
+          className="flex items-center gap-2 hover:text-blue-500 transition-colors"
         >
-          <MessageCircle size={16} />
+          <MessageCircle size={18} />
           <span className="text-sm font-medium">Comment</span>
         </button>
       </div>
-      <div className="flex flex-row flex-wrap items-center gap-6 text-gray-600">
-        <button className="hover:text-black transition-colors cursor-pointer">
-          <Bookmark size={16} />
+
+      {/* Right side icons */}
+      <div className="flex items-center flex-wrap gap-6 sm:gap-8">
+        <button className="hover:text-black transition-colors">
+          <Bookmark size={18} />
         </button>
-        <button className="hover:text-black transition-colors cursor-pointer">
-          <Share size={16} />
+        <button className="hover:text-black transition-colors">
+          <Share size={18} />
         </button>
-        <button className="hover:text-black transition-colors cursor-pointer">
-          <Ellipsis size={16} />
+        <button className="hover:text-black transition-colors">
+          <Ellipsis size={18} />
         </button>
       </div>
     </div>

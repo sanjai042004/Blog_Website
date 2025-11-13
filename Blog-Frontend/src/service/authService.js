@@ -1,7 +1,6 @@
 import { api } from "./api";
 
-// All authentication-related backend calls
-export const AuthService = {
+export const authService = {
   // Register a new user
   register: async (formData) => {
     const { data } = await api.post("/auth/register", formData);
@@ -14,7 +13,7 @@ export const AuthService = {
     return data;
   },
 
-  // Google login (if you support it)
+  // Google login
   googleLogin: async (token) => {
     const { data } = await api.post("/auth/google-login", { token });
     return data;
@@ -22,7 +21,7 @@ export const AuthService = {
 
   // Get the logged-in user's profile
   getProfile: async () => {
-    const { data } = await api.get("/auth/profile");
+    const { data } = await api.get("/users/profile");
     return data;
   },
 
@@ -34,7 +33,7 @@ export const AuthService = {
 
   // Update user profile
   updateProfile: async (formData) => {
-    const { data } = await api.put("/auth/profile", formData, {
+    const { data } = await api.put("/users/update", formData, {
       withCredentials: true,
     });
     return data;

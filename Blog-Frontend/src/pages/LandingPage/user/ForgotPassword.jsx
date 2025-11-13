@@ -94,7 +94,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
               <button
                 type="button"
                 onClick={handleResendOtp}
-                className="text-blue-600 text-sm hover:underline"
+                className="text-blue-600 text-sm hover:underline cursor-pointer"
                 disabled={loading}
               >
                 Resend OTP

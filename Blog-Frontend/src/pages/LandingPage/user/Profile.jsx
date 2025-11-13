@@ -25,7 +25,7 @@ export const Profile = () => {
         )}
         <button
           onClick={() => setIsOpen(true)}
-          className="text-green-600 hover:underline mt-2 text-sm sm:text-base"
+          className="text-green-600 hover:underline mt-2 text-sm sm:text-base cursor-pointer"
         >
           Edit profile
         </button>

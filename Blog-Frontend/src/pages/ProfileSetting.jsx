@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { api } from "../service/api";
 import { useAuth } from "../hooks/useAuth";
 import { UserProfile } from "../components/author/UserProfile";
+import { authService } from "../service/authService";
 
 export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
   const { user, fetchProfile } = useAuth();
@@ -13,27 +13,21 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
   useEffect(() => {
     if (isOpen && user) {
       setPreview(user.profileImage || null);
-      setFile(null);
       setName(user.name || "");
       setBio(user.bio || "");
+      setFile(null);
     }
-  }, [isOpen, user]);
-
-  useEffect(() => {
-    return () => {
-      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
+  }, [isOpen, user, setPreview]);
 
   if (!isOpen) return null;
 
   const handleFileChange = (e) => {
-    const f = e.target.files[0];
-    if (f) {
-      if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
-      setFile(f);
-      setPreview(URL.createObjectURL(f));
-    }
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    if (preview?.startsWith("blob:")) URL.revokeObjectURL(preview);
+    setFile(selectedFile);
+    setPreview(URL.createObjectURL(selectedFile));
   };
 
   const handleSave = async () => {
@@ -46,9 +40,7 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
       formData.append("bio", bio);
       if (file) formData.append("profileImage", file);
 
-      const { data } = await api.put("/auth/profile", formData, {
-        withCredentials: true,
-      });
+      const data = await authService.updateProfile(formData);
 
       if (data.success) {
         await fetchProfile();
@@ -69,13 +61,13 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
       onClick={onClose}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl p-5 sm:p-8 w-full max-w-md sm:max-w-lg transition-transform duration-300 ease-in-out scale-100 overflow-y-auto max-h-[90vh]"
+        className="relative bg-white rounded-2xl shadow-2xl p-5 sm:p-8 w-full max-w-md sm:max-w-lg overflow-y-auto max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-4 text-gray-500 hover:text-black text-2xl sm:text-xl cursor-pointer"
+          className="absolute top-3 right-4 text-gray-500 hover:text-black text-2xl sm:text-xl"
         >
           ✕
         </button>
@@ -88,10 +80,14 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
         {/* Profile Image */}
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden group">
-            <UserProfile user={user} src={preview} size="w-24 h-24 sm:w-28 sm:h-28 text-xl" />
+            <UserProfile
+              user={user}
+              src={preview}
+              size="w-24 h-24 sm:w-28 sm:h-28 text-xl"
+            />
             <label
               htmlFor="fileInput"
-              className="absolute inset-0 bg-black/50 text-white text-xs sm:text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all"
+              className="absolute inset-0 bg-black/50 text-white text-xs sm:text-sm flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition"
             >
               Change Photo
             </label>
@@ -114,7 +110,7 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg px-4 py-2 border border-gray-300 outline-none focus:ring-2 focus:ring-black/30 text-sm sm:text-base"
+            className="w-full rounded-lg px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-black/30 text-sm sm:text-base outline-none"
           />
         </div>
 
@@ -128,22 +124,22 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
             onChange={(e) => setBio(e.target.value)}
             rows={4}
             placeholder="Write a few lines about yourself..."
-            className="w-full rounded-lg px-4 py-2 border border-gray-300 outline-none resize-none focus:ring-2 focus:ring-black/30 text-sm sm:text-base"
+            className="w-full rounded-lg px-4 py-2 border border-gray-300 resize-none focus:ring-2 focus:ring-black/30 text-sm sm:text-base outline-none"
           />
         </div>
 
-        {/* Action Buttons */}
+        {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <button
             onClick={handleSave}
             disabled={loading || !name.trim()}
-            className="w-full sm:flex-1 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 cursor-pointer text-sm sm:text-base"
+            className="w-full sm:flex-1 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 text-sm sm:text-base cursor-pointer"
           >
             {loading ? "Saving..." : "Save"}
           </button>
           <button
             onClick={onClose}
-            className="w-full sm:flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition cursor-pointer text-sm sm:text-base"
+            className="w-full sm:flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm sm:text-base cursor-pointer"
           >
             Cancel
           </button>

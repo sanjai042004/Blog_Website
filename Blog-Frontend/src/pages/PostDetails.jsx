@@ -89,7 +89,7 @@ export const PostDetail = () => {
         <PostBlocks blocks={post.blocks} />
       </div>
 
-      <div className="border-t pt-6 mt-8">
+      <div className="border-t border-gray-200 pt-6 mt-8">
         <CommentSection
           postId={id}
           comments={comments}

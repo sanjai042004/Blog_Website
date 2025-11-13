@@ -27,16 +27,16 @@ export const Home = () => {
     return <p className="text-center mt-20 text-lg">Loading posts...</p>;
 
   return (
-    <div className="min-h-screen px-4 py-10">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10">
-        {/* Main Post Section */}
-        <div className="flex-1 max-w-4xl mx-auto lg:mx-0">
-          <h2 className="text-3xl font-bold mb-8 text-center">
-            Latest Posts
-          </h2>
+    <div className="min-h-screen px-4 sm:px-6 md:px-10 py-8">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 justify-center">
 
+        {/* Main Post Section */}
+        <div className="w-full lg:w-[900px]">
+           <h2 className="text-center text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">
+           Latest Post
+          </h2>
           {posts.length > 0 ? (
-            <div className="space-y-8 sm:space-y-12">
+            <div className="space-y-6 sm:space-y-10">
               {posts.map((post) => (
                 <PostCard key={post._id} post={post} formatDate={formatDate} />
               ))}
@@ -46,8 +46,8 @@ export const Home = () => {
           )}
         </div>
 
-        {/* Sidebar (hidden on mobile) */}
-        <aside className="hidden lg:block w-full max-w-xs">
+        {/* Sidebar (hidden on mobile & tablet) */}
+        <aside className="hidden xl:block w-full max-w-xs">
           <TopicsSidebar />
         </aside>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, InputField } from "../../../components/ui";
-import { api } from "../../../service/api";
+import { otpService } from "../../../service/otpService";
 
 export const ResetPassword = () => {
   const navigate = useNavigate();
@@ -15,6 +15,14 @@ export const ResetPassword = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  if (!email || !otp) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-600 text-lg">Invalid or expired reset link.</p>
+      </div>
+    );
+  }
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
@@ -27,18 +35,11 @@ export const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/reset-password", {
-        email,
-        otp,
-        newPassword,
-      });
-
-      setMessage(`✅ ${res.data.message}`);
-      setTimeout(() => navigate("/home"), 1500);
+      const res = await otpService.resetPassword(email, otp, newPassword);
+      setMessage(`✅ ${res.message}`);
+      setTimeout(() => navigate("/"), 1500);
     } catch (error) {
-      setMessage(
-        error.response?.data?.message || "❌ Failed to reset password."
-      );
+      setMessage(error.message || "❌ Failed to reset password.");
     } finally {
       setLoading(false);
     }

@@ -7,7 +7,6 @@ import { getPostImage, getPreviewText } from "../../utilis/postUtilis";
 export const PostCard = ({ post, hideAuthor = false }) => {
   const navigate = useNavigate();
   const BACKEND_URL = import.meta.env.VITE_API_URL;
-
   const author = post.author || {};
 
   const goToAuthor = (e) => {
@@ -19,25 +18,26 @@ export const PostCard = ({ post, hideAuthor = false }) => {
     () => getPostImage(post, BACKEND_URL),
     [post, BACKEND_URL]
   );
-  const previewText = useMemo(() => getPreviewText(post), [post]);
 
-  const openPost = () => navigate(`/home/post/${post._id}`);
+  const previewText = useMemo(() => getPreviewText(post), [post]);
+  const formattedDate = post.createdAt
+    ? new Date(post.createdAt).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "Unknown date";
 
   return (
     <div
-      onClick={openPost}
-      className="cursor-pointer w-full max-w-2xl mx-auto py-6 px-4"
+      onClick={() => navigate(`/home/post/${post._id}`)}
+      className="cursor-pointer w-full max-w-2xl mx-auto py-6 px-4 border-b border-gray-200 transition"
     >
       {!hideAuthor && (
-        <AuthorInfo
-          author={author}
-          onClick={goToAuthor}
-          showDate
-          date={post.createdAt ? new Date(post.createdAt) : null}
-        />
+        <AuthorInfo author={author} onClick={goToAuthor} showDate />
       )}
 
-      <Link to={`/home/post/${post._id}`} className="flex gap-4">
+      <div className="flex gap-4">
         <div className="flex-1">
           <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">
             {post.title || "Untitled Post"}
@@ -51,14 +51,15 @@ export const PostCard = ({ post, hideAuthor = false }) => {
           <img
             src={postImage}
             alt={post.title || "Post image"}
-            className="w-32 h-24 object-cover rounded-md flex-shrink-0"
+            className="w-40 h-30 object-cover flex-shrink-0 rounded"
             loading="lazy"
           />
         )}
-      </Link>
+      </div>
 
       <div className="flex justify-between items-center text-sm text-gray-500 mt-4">
         <div className="flex items-center gap-4">
+          <span>{formattedDate}</span>
           <span className="flex items-center gap-1">
             <Heart size={16} /> {post.likes || 0}
           </span>

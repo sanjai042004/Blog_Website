@@ -13,22 +13,22 @@ export const Write = () => {
   const contentRefs = useRef([]);
   const navigate = useNavigate();
 
-  //  Update block field
+  // Update block field
   const updateBlock = (index, field, value) => {
     setBlocks((prev) =>
       prev.map((b, i) => (i === index ? { ...b, [field]: value } : b))
     );
   };
 
-  //  Add a new block
+  // Add new block
   const addBlock = () => setBlocks((prev) => [...prev, newBlock()]);
 
-  //  Remove a block
+  // Remove block
   const removeBlock = (index) => {
     setBlocks((prev) => prev.filter((_, i) => i !== index));
   };
 
-  //  Handle image upload
+  // Handle image upload
   const handleImageChange = (index, file) => {
     if (!file) return;
 
@@ -42,7 +42,7 @@ export const Write = () => {
     );
   };
 
-  //  Handle Unsplash image selection
+  // Handle Unsplash image selection
   const handleUnsplashSelect = (url) => {
     if (!url) return;
     setBlocks((prev) => [
@@ -51,7 +51,7 @@ export const Write = () => {
     ]);
   };
 
-  //  Validate before posting
+  // Validate before posting
   const isValid = () => {
     if (!title.trim()) {
       alert("Title is required!");
@@ -73,7 +73,7 @@ export const Write = () => {
     return true;
   };
 
-  //  Submit post to backend
+  // Submit post to backend
   const handlePost = async () => {
     if (!isValid()) return;
 
@@ -83,24 +83,20 @@ export const Write = () => {
       const formData = new FormData();
       formData.append("title", title);
 
-      // Remove preview URLs (not needed for backend)
       const cleanedBlocks = blocks.map(({ preview, ...rest }) => rest);
       formData.append("blocks", JSON.stringify(cleanedBlocks));
 
-      // Add image files if any
       blocks.forEach((b) => {
         if (b.imageFile instanceof File) {
           formData.append("images", b.imageFile);
         }
       });
 
-      // API call
       const res = await api.post("/posts", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
 
-      // Reset form and go to new post page
       setTitle("");
       setBlocks([newBlock()]);
       navigate(`/home/post/${res.data.post._id}`);
@@ -112,7 +108,7 @@ export const Write = () => {
     }
   };
 
-  //  Handle Enter key on title
+  // Handle Enter on title
   const handleTitleKey = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -127,10 +123,10 @@ export const Write = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col bg-white">
       <WriteNavbar onPost={handlePost} loading={loading} />
 
-      <div className="max-w-5xl mt-8 mx-auto px-6 py-10">
+      <div className="w-full max-w-5xl mx-auto mt-6 sm:mt-8 md:mt-10 px-4 sm:px-6 md:px-10 py-8 sm:py-10">
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -138,24 +134,27 @@ export const Write = () => {
           onInput={handleAutoResize}
           placeholder="Title"
           rows={1}
-          className="w-full text-5xl font-serif font-bold mb-6 border-none outline-none resize-none overflow-hidden placeholder-gray-200"
+          className="w-full text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-6 border-none outline-none resize-none overflow-hidden placeholder-gray-300"
           autoFocus
         />
 
-        {blocks.map((block, index) => (
-          <Block
-            key={index}
-            index={index}
-            block={block}
-            blocks={blocks}
-            handleChange={updateBlock}
-            removeBlock={removeBlock}
-            addBlock={addBlock}
-            contentRefs={contentRefs}
-            handleFileChange={handleImageChange}
-            handleUnsplashSelect={handleUnsplashSelect}
-          />
-        ))}
+        {/* Content Blocks */}
+        <div className="space-y-8 sm:space-y-10">
+          {blocks.map((block, index) => (
+            <Block
+              key={index}
+              index={index}
+              block={block}
+              blocks={blocks}
+              handleChange={updateBlock}
+              removeBlock={removeBlock}
+              addBlock={addBlock}
+              contentRefs={contentRefs}
+              handleFileChange={handleImageChange}
+              handleUnsplashSelect={handleUnsplashSelect}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
