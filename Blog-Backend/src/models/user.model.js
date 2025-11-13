@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
       index: true,
       sparse: true,
     },
+
     profileImage: {
       type: String,
       default: "",
@@ -48,9 +49,10 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-
     resetPasswordOTP: String,
     resetPasswordOTPExpire: Date,
+    isDeactivated: { type: Boolean, default: false },
+
   },
   { timestamps: true }
 );

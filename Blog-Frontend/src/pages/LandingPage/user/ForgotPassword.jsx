@@ -1,24 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../../../service/api";
 import { Button, InputField, Modal, OTPInput } from "../../../components/ui";
+import { otpService } from "../../../service/otpService";
 
 export const ForgotPassword = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(Array(6).fill(""));
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // 1 = send OTP, 2 = verify OTP
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  // 🔹 Step 1: Send OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!email.trim()) return setMessage("Please enter your email");
 
     try {
       setLoading(true);
-      const res = await api.post("/auth/forgot-password", { email });
-      setMessage(res.data.message || "OTP sent successfully!");
+      const res = await otpService.forgotPassword(email);
+      setMessage(res.message || "OTP sent successfully!");
       setStep(2);
     } catch (err) {
       setMessage(err.response?.data?.message || "Error sending OTP");
@@ -27,24 +29,21 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
     }
   };
 
+  // 🔹 Step 2: Verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const code = otp.join("");
-
-    if (code.length !== 6)
-      return setMessage("Please enter the full 6-digit OTP");
+    if (code.length !== 6) return setMessage("Please enter the full 6-digit OTP");
 
     try {
       setLoading(true);
-      const res = await api.post("/auth/verify-otp", { email, otp: code });
-      setMessage(res.data.message || "OTP verified successfully!");
-      setOtp(Array(6).fill(""));
+      const res = await otpService.verifyOtp(email, code);
+      setMessage(res.message || "OTP verified successfully!");
 
+      // Redirect to reset password page
       setTimeout(() => {
         onClose();
-        navigate(
-          `/reset-password?email=${encodeURIComponent(email)}&otp=${code}`
-        );
+        navigate(`/reset-password?email=${encodeURIComponent(email)}&otp=${code}`);
       }, 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || "Invalid or expired OTP");
@@ -53,14 +52,14 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
     }
   };
 
+  // 🔹 Resend OTP
   const handleResendOtp = async () => {
     if (!email.trim()) return setMessage("Email missing");
 
     try {
       setLoading(true);
-      const res = await api.post("/auth/resend-otp", { email });
-      setMessage(res.data.message || "New OTP sent successfully!");
-
+      const res = await otpService.resendOtp(email);
+      setMessage(res.message || "New OTP sent successfully!");
       setOtp(Array(6).fill(""));
     } catch (err) {
       setMessage(err.response?.data?.message || "Error resending OTP");
@@ -71,10 +70,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Forgot Password">
-      <form
-        onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp}
-        className="space-y-4"
-      >
+      <form onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp} className="space-y-4">
         {step === 1 && (
           <InputField
             id="email"
@@ -114,9 +110,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
         {message && (
           <p
             className={`text-center text-sm ${
-              message.toLowerCase().includes("success")
-                ? "text-green-600"
-                : "text-red-600"
+              message.toLowerCase().includes("success") ? "text-green-600" : "text-red-600"
             }`}
           >
             {message}

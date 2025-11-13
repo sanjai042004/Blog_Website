@@ -1,13 +1,14 @@
 import { createContext, useEffect, useState, useCallback, useMemo } from "react";
-import { api } from "../service/api";
+import { AuthService } from "../service/authService";
 import { getProfileImage } from "../utilis/utilis";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Format & cache user data
   const updateUserState = useCallback((userData, bustCache = false) => {
     if (!userData) return setUser(null);
 
@@ -22,10 +23,11 @@ export const AuthProvider = ({ children }) => {
     return formattedUser;
   }, []);
 
+  // ✅ Fetch user profile from backend
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/auth/profile");
+      const data = await AuthService.getProfile();
       if (data.success && data.user) updateUserState(data.user);
       else setUser(null);
     } catch {
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [updateUserState]);
 
+  // ✅ Auto-load cached user from localStorage
   useEffect(() => {
     const cachedUser = localStorage.getItem("authUser");
     if (cachedUser) {
@@ -50,75 +53,63 @@ export const AuthProvider = ({ children }) => {
     }
   }, [fetchProfile]);
 
+  // ✅ Sync user state to localStorage
   useEffect(() => {
     if (user) localStorage.setItem("authUser", JSON.stringify(user));
     else localStorage.removeItem("authUser");
   }, [user]);
 
-  const authRequest = useCallback(
-    async (endpoint, payload) => {
-      try {
-        const { data } = await api.post(endpoint, payload);
+  // ✅ Register
+  const register = useCallback(async (formData) => {
+    const data = await AuthService.register(formData);
+    if (data.success && data.user) {
+      localStorage.setItem("accessToken", data.accessToken);
+      updateUserState(data.user, true);
+    }
+    return data;
+  }, [updateUserState]);
 
-        if (!data.success) {
-          return { success: false, message: data.message };
-        }
+  // ✅ Login
+  const login = useCallback(async (formData) => {
+    const data = await AuthService.login(formData);
+    if (data.success && data.user) {
+      localStorage.setItem("accessToken", data.accessToken);
+      updateUserState(data.user, true);
+    }
+    return data;
+  }, [updateUserState]);
 
-        if (data.accessToken)
-          localStorage.setItem("accessToken", data.accessToken);
+  // ✅ Google login
+  const googleLogin = useCallback(async (token) => {
+    const data = await AuthService.googleLogin(token);
+    if (data.success && data.user) {
+      localStorage.setItem("accessToken", data.accessToken);
+      updateUserState(data.user, true);
+    }
+    return data;
+  }, [updateUserState]);
 
-        if (data.user) {
-          return { success: true, user: updateUserState(data.user, true) };
-        }
-
-        const profile = await fetchProfile();
-        return { success: true, user: profile };
-      } catch (err) {
-        return {
-          success: false,
-          message: err.response?.data?.message || err.message,
-        };
-      }
-    },
-    [fetchProfile, updateUserState]
-  );
-
-  const register = (formData) => authRequest("/auth/register", formData);
-  const login = (formData) => authRequest("/auth/login", formData);
-  const googleLogin = (token) => authRequest("/auth/google-login", { token });
-
+  // ✅ Logout
   const logout = useCallback(async () => {
     try {
-      await api.post("/auth/logout");
+      await AuthService.logout();
     } catch {}
     setUser(null);
     localStorage.removeItem("authUser");
     localStorage.removeItem("accessToken");
   }, []);
 
-  const updateProfile = useCallback(
-    async (form) => {
-      try {
-        const { data } = await api.put("/auth/profile", form, {
-          withCredentials: true,
-        });
+  // ✅ Update Profile
+  const updateProfile = useCallback(async (form) => {
+    const data = await AuthService.updateProfile(form);
+    if (data.success && data.user) {
+      updateUserState(data.user, true);
+      return { success: true };
+    }
+    return { success: false, message: data.message || "Failed to update profile." };
+  }, [updateUserState]);
 
-        if (data.success && data.user) {
-          updateUserState(data.user, true);
-          return { success: true };
-        }
-
-        return { success: false, message: data.message || "Failed to update profile." };
-      } catch (err) {
-        return {
-          success: false,
-          message: err.response?.data?.message || "Failed to update profile.",
-        };
-      }
-    },
-    [updateUserState]
-  );
-
+  // ✅ Context value
   const value = useMemo(
     () => ({
       user,
@@ -136,5 +127,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-export { AuthContext };

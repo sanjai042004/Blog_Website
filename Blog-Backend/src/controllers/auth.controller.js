@@ -2,16 +2,10 @@ const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { OAuth2Client } = require("google-auth-library");
-const {
-  createTokens,
-  attachTokens,
-  clearCookies,
-  publicUser,
-} = require("../utils/auth");
+const {createTokens,attachTokens,clearCookies,publicUser,} = require("../utils/auth");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-//  Helper functions
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
@@ -21,7 +15,7 @@ const comparePassword = async (entered, hashed) => {
   return bcrypt.compare(entered, hashed);
 };
 
-//  Register new user
+//new user
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -59,12 +53,12 @@ const register = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Registration successful!",
+      message: "✔️Registration successful!",
       accessToken: tokens.accessToken,
       user: publicUser(newUser),
     });
   } catch (err) {
-    console.error("❌ Register Error:", err.message);
+    console.error("Register Error:", err.message);
     return res
       .status(500)
       .json({ success: false, message: "Server error during registration" });
@@ -77,23 +71,15 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password)
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
 
-    const user = await User.findOne({ email }).select(
-      "+password +refreshTokens"
-    );
+    const user = await User.findOne({ email }).select("+password +refreshTokens");
     if (!user)
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch)
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
 
     const tokens = createTokens(user);
     user.refreshTokens = (user.refreshTokens || []).concat(tokens.refreshToken);
@@ -103,15 +89,13 @@ const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Login successful!",
+      message: "✔️Login successful!",
       accessToken: tokens.accessToken,
       user: publicUser(user),
     });
   } catch (err) {
-    console.error("❌ Login Error:", err.message);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during login" });
+    console.error("Login Error:", err.message);
+    return res.status(500).json({ success: false, message: "Server error during login" });
   }
 };
 
@@ -120,9 +104,7 @@ const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
     if (!token)
-      return res
-        .status(400)
-        .json({ success: false, message: "Google token is required" });
+      return res.status(400).json({ success: false, message: "Google token is required" });
 
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -153,14 +135,12 @@ const googleLogin = async (req, res) => {
 
     attachTokens(res, tokens);
 
-    return res.status(200).json({
-      success: true,
-      message: "Google login successful!",
+    return res.status(200).json({success: true,message: "✔️Google login successful!",
       accessToken: tokens.accessToken,
       user: publicUser(user),
     });
   } catch (err) {
-    console.error("❌ Google Login Error:", err.message);
+    console.error(" Google Login Error:", err.message);
     return res.status(500).json({
       success: false,
       message: "Server error during Google login",
@@ -199,7 +179,7 @@ const refreshToken = async (req, res) => {
       user: publicUser(user),
     });
   } catch (err) {
-    console.error("❌ Refresh Token Error:", err.message);
+    console.error(" Refresh Token Error:", err.message);
     return res
       .status(401)
       .json({ success: false, message: "Invalid or expired refresh token" });
@@ -228,7 +208,7 @@ const logout = async (req, res) => {
     clearCookies(res);
     return res.json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    console.error("❌ Logout Error:", err.message);
+    console.error(" Logout Error:", err.message);
     clearCookies(res);
     return res
       .status(500)

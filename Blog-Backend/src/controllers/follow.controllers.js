@@ -3,32 +3,41 @@ const User = require("../models/user.model");
 // Follow a user
 const followUser = async (req, res) => {
   try {
-    const userId = req.user._id.toString();
-    const targetUserId = req.params.id;
+    const userId = req.user._id;
+    const targetId = req.params.id;
 
-    if (userId === targetUserId)
-      return res.status(400).json({ success: false, message: "You cannot follow yourself" });
+    if (userId.toString() === targetId)
+      return res
+        .status(400)
+        .json({ success: false, message: "You cannot follow yourself" });
 
-    const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
-    if (!targetUser) return res.status(404).json({ success: false, message: "User not found" });
-    if (user.following.includes(targetUserId))
-      return res.status(400).json({ success: false, message: "Already following" });
+    const [user, target] = await Promise.all([
+      User.findById(userId),
+      User.findById(targetId),
+    ]);
 
-    user.following.push(targetUserId);
-    targetUser.followers.push(userId);
+    if (!target)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    if (user.following.includes(targetId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Already following" });
 
-    await user.save();
-    await targetUser.save();
+    user.following.push(targetId);
+    target.followers.push(userId);
+
+    await Promise.all([user.save(), target.save()]);
 
     res.status(200).json({
       success: true,
       message: "Followed successfully",
       isFollowed: true,
-      followersCount: targetUser.followers.length,
+      followersCount: target.followers.length,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Follow Error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -36,70 +45,104 @@ const followUser = async (req, res) => {
 // Unfollow a user
 const unFollowUser = async (req, res) => {
   try {
-    const userId = req.user._id.toString();
-    const targetUserId = req.params.id;
+    const userId = req.user._id;
+    const targetId = req.params.id;
 
-    const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
-    if (!targetUser) return res.status(404).json({ success: false, message: "User not found" });
+    const [user, target] = await Promise.all([
+      User.findById(userId),
+      User.findById(targetId),
+    ]);
 
-    user.following = user.following.filter((id) => id.toString() !== targetUserId);
-    targetUser.followers = targetUser.followers.filter((id) => id.toString() !== userId);
+    if (!target)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    await user.save();
-    await targetUser.save();
+    user.following = user.following.filter((id) => id.toString() !== targetId);
+    target.followers = target.followers.filter(
+      (id) => id.toString() !== userId.toString()
+    );
+
+    await Promise.all([user.save(), target.save()]);
 
     res.status(200).json({
       success: true,
       message: "Unfollowed successfully",
       isFollowed: false,
-      followersCount: targetUser.followers.length,
+      followersCount: target.followers.length,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Unfollow Error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// Get followers
+// Get followers list
 const getFollowers = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate("followers", "name profileImage");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const user = await User.findById(req.params.id).populate(
+      "followers",
+      "name profileImage"
+    );
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
     res.status(200).json({ success: true, followers: user.followers });
   } catch (err) {
-    console.error(err);
+    console.error("GetFollowers Error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// Get following
+//  Get following list
 const getFollowing = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate("following", "name profileImage");
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const user = await User.findById(req.params.id).populate(
+      "following",
+      "name profileImage"
+    );
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
     res.status(200).json({ success: true, following: user.following });
   } catch (err) {
-    console.error(err);
+    console.error("GetFollowing Error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// Follow status 
+//  Check follow status
 const followStatus = async (req, res) => {
   try {
-    const userId = req.user._id.toString();
-    const targetUserId = req.params.id;
+    const userId = req.user._id;
+    const targetId = req.params.id;
 
-    const targetUser = await User.findById(targetUserId);
-    if (!targetUser) return res.status(404).json({ success: false, message: "User not found" });
+    const target = await User.findById(targetId);
+    if (!target)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    const isFollowed = targetUser.followers.includes(userId);
-    res.status(200).json({ success: true, isFollowed, followersCount: targetUser.followers.length });
+    const isFollowed = target.followers.includes(userId);
+    res.status(200).json({
+      success: true,
+      isFollowed,
+      followersCount: target.followers.length,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("FollowStatus Error:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-module.exports = { followUser, unFollowUser, getFollowers, getFollowing, followStatus };
+module.exports = {
+  followUser,
+  unFollowUser,
+  getFollowers,
+  getFollowing,
+  followStatus,
+};

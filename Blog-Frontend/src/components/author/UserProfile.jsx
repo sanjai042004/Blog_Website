@@ -39,11 +39,10 @@ export const UserProfile = ({
           setImgError(true);
         }}
         loading="lazy"
-        referrerPolicy="no-referrer" 
+        referrerPolicy="no-referrer"
       />
     );
   }
-
 
   return (
     <div

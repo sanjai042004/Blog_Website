@@ -5,49 +5,51 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-let isRefreshing = false;
-let requestQueue = [];
-
-const processQueue = (error, token = null) => {
-  requestQueue.forEach(({ resolve, reject }) =>
-    error ? reject(error) : resolve(token)
-  );
-  requestQueue = [];
-};
-
+// Before sending any request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem("accessToken"); 
+  if (token) config.headers.Authorization = `Bearer ${token}`; 
   return config;
 });
 
+// To handle token refresh automatically
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((req) => {
+    if (error) req.reject(error);
+    else req.resolve(token);
+  });
+  failedQueue = [];
+};
+
+// Handle API responses & errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const original = error.config;
 
-    if (
-      !error.response ||
-      originalRequest._retry ||
-      error.response.status !== 401 ||
-      originalRequest.url.includes("/auth/refresh")
-    ) {
+    if (!error.response || error.response.status !== 401) {
       return Promise.reject(error);
     }
 
-    originalRequest._retry = true;
+    // prevent infinite loops
+    if (original._retry) return Promise.reject(error);
+    original._retry = true;
 
+    // if already refreshing - wait
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        requestQueue.push({ resolve, reject });
-      }).then((token) => {
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return api(originalRequest);
+        failedQueue.push({ resolve, reject });
+      }).then((newToken) => {
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return api(original);
       });
     }
 
+    // start refreshing
     isRefreshing = true;
-
     try {
       const { data } = await api.post("/auth/refresh");
       const newToken = data.accessToken;
@@ -58,17 +60,12 @@ api.interceptors.response.use(
       }
 
       processQueue(null, newToken);
-
-      originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      return api(originalRequest);
+      original.headers.Authorization = `Bearer ${newToken}`;
+      return api(original);
     } catch (err) {
-      processQueue(err);
+      processQueue(err, null);
       localStorage.removeItem("accessToken");
-
-      if ([401, 403].includes(err.response?.status)) {
-        window.location.href = "/";
-      }
-
+      window.location.href = "/"; 
       return Promise.reject(err);
     } finally {
       isRefreshing = false;
