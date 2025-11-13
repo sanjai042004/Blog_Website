@@ -17,7 +17,6 @@ export const AuthorInfo = ({
       {/* Author avatar */}
       <UserProfile user={author} size="w-7 h-7 text-xs" onClick={onClick} />
 
-      {/* Author name and optional date */}
       <div className="flex flex-col">
         <span
           className="font-medium text-gray-700 hover:underline cursor-pointer"
