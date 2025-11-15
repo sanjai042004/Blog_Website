@@ -51,7 +51,7 @@ export const PostCard = ({ post, hideAuthor = false }) => {
           <img
             src={postImage}
             alt={post.title || "Post image"}
-            className="w-40 h-30 object-cover flex-shrink-0 rounded"
+            className="w-24 h-20     sm:w-32 sm:h-28md:w-40 md:h-32 object-cover rounded flex-shrink-0"
             loading="lazy"
           />
         )}
