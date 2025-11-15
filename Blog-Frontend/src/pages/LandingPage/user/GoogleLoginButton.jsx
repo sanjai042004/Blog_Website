@@ -42,9 +42,10 @@ export const GoogleLoginButton = () => {
         <GoogleLogin
           onSuccess={handleSuccess}
           onError={() => alert("Google Login Failed")}
+          useOneTap={false}
           shape="pill"
-          size="large" 
-          width="100%" 
+          size="large"
+          width="100%"
         />
       </div>
     </div>
