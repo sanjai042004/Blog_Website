@@ -10,7 +10,6 @@ import { LandingPage, Profile, ResetPassword } from "../pages/LandingPage";
 import { Write } from "../pages/WritePage/Write";
 
 export const Router = createBrowserRouter([
-  // Public routes (redirect if logged in)
   {
     element: <RedirectIfAuth />,
     children: [
