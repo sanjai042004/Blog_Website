@@ -6,7 +6,7 @@ export const ProtectedRoute = () => {
 
   if (loading) return <p className="text-center mt-20">Checking auth...</p>;
 
-  if (!user) return <Navigate to="/home" replace />;
+  if (!user) return <Navigate to="/login" replace />;
 
   return <Outlet />;
 };
