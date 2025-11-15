@@ -31,16 +31,20 @@ export const GoogleLoginButton = () => {
   return (
     <div className="flex flex-col items-center w-full px-4 mt-3">
       {/* Responsive box for mobile */}
-      <div className="
+      <div
+        className="
         w-full 
         max-w-xs   
         md:max-w-sm 
         overflow-hidden 
-      ">
+      "
+      >
         <GoogleLogin
           onSuccess={handleSuccess}
           onError={() => alert("Google Login Failed")}
-          width="100%"
+          shape="pill"
+          size="large" 
+          width="100%" 
         />
       </div>
     </div>
