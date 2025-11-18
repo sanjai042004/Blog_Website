@@ -36,7 +36,7 @@ export const PostActions = ({
         {/* Clap */}
         <button
           onClick={handleClap}
-          className="flex items-center gap-2 hover:text-orange-500 transition-colors"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-500 transition-colors cursor-pointer"
         >
           <Heart
             size={18}
@@ -50,7 +50,7 @@ export const PostActions = ({
         {/* Comment */}
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2 hover:text-blue-500 transition-colors"
+          className="flex items-center gap-2 text-gray-400 hover:text-gray-500 transition-colors cursor-pointer"
         >
           <MessageCircle size={18} />
           <span className="text-sm font-medium">Comment</span>
@@ -59,13 +59,13 @@ export const PostActions = ({
 
       {/* Right side icons */}
       <div className="flex items-center flex-wrap gap-6 sm:gap-8">
-        <button className="hover:text-black transition-colors">
+        <button className="text-gray-400 hover:text-gray-500 cursor-pointer">
           <Bookmark size={18} />
         </button>
-        <button className="hover:text-black transition-colors">
+        <button className="text-gray-400 hover:text-gray-500 cursor-pointer">
           <Share size={18} />
         </button>
-        <button className="hover:text-black transition-colors">
+        <button className="text-gray-400 hover:text-gray-500 cursor-pointer">
           <Ellipsis size={18} />
         </button>
       </div>

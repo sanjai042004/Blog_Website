@@ -7,6 +7,7 @@ import { api } from "../../service/api";
 
 export const Write = () => {
   const [title, setTitle] = useState("");
+  const [subtitle , setSubtitle] = useState("");
   const [blocks, setBlocks] = useState([newBlock()]);
   const [loading, setLoading] = useState(false);
 

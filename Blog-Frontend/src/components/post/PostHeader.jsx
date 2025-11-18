@@ -24,11 +24,11 @@ export const PostHeader = ({
 
   return (
     <div className="mb-10">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-6 break-words">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-15 break-words">
         {title}
       </h1>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-3">
           <Link to={author ? `/author/${author._id}` : "#"}>
             <UserProfile user={author} size="w-10 h-10" />
@@ -40,7 +40,7 @@ export const PostHeader = ({
             {canFollow && (
               <button
                 onClick={toggleFollow}
-                className="text-blue-500 text-sm hover:underline"
+                className="text-sm border py-1 px-3 border-gray-400 rounded-full cursor-pointer"
               >
                 {isFollowing ? "Following" : "Follow"}
               </button>
@@ -54,8 +54,8 @@ export const PostHeader = ({
           </div>
         </div>
 
-        <p className="text-sm text-gray-500">
-          {readTime} · {date}
+        <p className="font-light text-xs text-gray-500">
+          {readTime}  {date}
         </p>
       </div>
     </div>

@@ -59,7 +59,7 @@ export const ProfileDropdown = () => {
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full text-left flex items-center border-t border-gray-200 px-4 py-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            className="w-full text-left flex items-center border-t border-gray-200 px-4 py-2 text-gray-500 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
           >
             {loggingOut ? "Signing out..." : "Sign out"}
           </button>

@@ -59,13 +59,7 @@ export const PostDetail = () => {
   if (error) return <p className="text-center py-20 text-red-500">{error}</p>;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link
-        to="/home"
-        className="text-gray-500 hover:text-gray-700 text-sm mb-4 block"
-      >
-        ← Back to Home
-      </Link>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-4 mt-25">
 
       <PostHeader
         post={{ ...post, author }}

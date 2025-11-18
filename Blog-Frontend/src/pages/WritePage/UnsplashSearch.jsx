@@ -12,14 +12,14 @@ export const UnsplashSearch = ({
 }) => {
   const ui = block?.ui || {};
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1); // 🔹 current page
+  const [page, setPage] = useState(1);
 
   const closeInput = () => {
     handleChange(index, "ui", { ...ui, showUnsplashInput: false });
     createNextBlock?.(index);
   };
 
-  // 🔹 Fetch Unsplash images by page
+  //  Fetch Unsplash images by page
   const searchUnsplash = async (newPage = 1) => {
     const query = block?.unsplashQuery?.trim();
     if (!query) return closeInput();
@@ -80,13 +80,13 @@ export const UnsplashSearch = ({
           onChange={handleChangeInput}
           onKeyDown={handleKeyDown}
           placeholder="Search Unsplash images..."
-          className="border border-gray-300 rounded-xl p-2 w-full outline-none focus:border-blue-500 transition"
+          className="border border-gray-300 rounded-xl p-2 w-full outline-none focus:border-gray-300 transition"
         />
 
         <button
           onClick={() => searchUnsplash(1)}
           disabled={loading}
-          className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 rounded-xl hover:bg-blue-600 active:scale-95 transition"
+          className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 hover:rounded-2xl hover:bg-blue-600 active:scale-95 transition cursor-pointer"
         >
           <Search size={18} />
           <span className="hidden sm:inline">Search</span>
@@ -94,7 +94,7 @@ export const UnsplashSearch = ({
 
         <button
           onClick={closeInput}
-          className="text-gray-400 hover:text-red-500 transition"
+          className="text-gray-400 hover:text-red-500 transition cursor-pointer"
           title="Close search"
         >
           <X size={20} />

@@ -21,7 +21,7 @@ export const Navbar = ({ toggleSidebar }) => {
           className="flex items-center gap-2 text-gray-600 hover:text-black text-lg"
           title="Write"
         >
-          <SquarePen />
+          <SquarePen className="size-5" />
           <span className="hidden sm:inline">Write</span>
         </NavLink>
 
