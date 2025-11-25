@@ -37,9 +37,7 @@ export const VideoInput = ({ block, index, handleChange }) => {
 
   return (
     <div className="w-full max-w-xl p-4 flex flex-col gap-4 bg-white">
-      {/* Input + Button in one row */}
       <div className="flex items-center gap-3 w-full">
-        {/* Input wrapper */}
         <div className="relative w-full">
           {/* Close Button */}
           <button
@@ -59,7 +57,6 @@ export const VideoInput = ({ block, index, handleChange }) => {
           />
         </div>
 
-        {/* Button next to input */}
         <button
           onClick={handleVideoLink}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm shadow transition cursor-pointer whitespace-nowrap"
