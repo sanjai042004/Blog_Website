@@ -27,7 +27,7 @@ app.use(
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.hvunclv.mongodb.net/blogdb`
+      `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.hvunclv.mongodb.net/?appName=Cluster0`
     );
     console.log("✅ MongoDB connected");
   } catch (err) {
