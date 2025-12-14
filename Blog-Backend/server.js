@@ -27,7 +27,7 @@ app.use(
 const connectDB = async () => {
   try {
     await mongoose.connect(
-      `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.hvunclv.mongodb.net/?appName=Cluster0`
+      `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@cluster0.skbsdwt.mongodb.net/?appName=Cluster0`
     );
     console.log("✅ MongoDB connected");
   } catch (err) {
@@ -40,12 +40,12 @@ const connectDB = async () => {
 app.get("/", (_, res) => res.send("Blog Backend Running 🚀"));
 app.use("/api", routes);
 
-// Error Handler
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError)
-    return res.status(400).json({ message: `Upload Error: ${err.message}` });
-  res.status(500).json({ message: "Internal Server Error" });
-});
+// // Error Handler
+// app.use((err, req, res, next) => {
+//   if (err instanceof multer.MulterError)
+//     return res.status(400).json({ message: `Upload Error: ${err.message}` });
+//   res.status(500).json({ message: "Internal Server Error" });
+// });
 
 // Start Server
 connectDB().then(() => {

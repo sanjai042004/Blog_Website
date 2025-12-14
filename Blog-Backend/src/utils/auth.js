@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const cookieOptions = {
   httpOnly: true, 
   secure: true,
-  sameSite: "none",
+  sameSite: "None",
   path: "/",
 };
 
@@ -15,14 +15,21 @@ const createTokens = (user) => {
 };
 
 const attachTokens = (res, tokens) => {
-  res.cookie("accessToken", tokens.accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); // 1 hour
-  res.cookie("refreshToken", tokens.refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
+  res.cookie("accessToken", tokens.accessToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 }); 
+  res.cookie("refreshToken", tokens.refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); 
 };
 
 const clearCookies = (res) => {
-  res.clearCookie("accessToken", cookieOptions);
-  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie("accessToken", {
+    ...cookieOptions,
+    maxAge: 0,
+  });
+  res.clearCookie("refreshToken", {
+    ...cookieOptions,
+    maxAge: 0,
+  });
 };
+
 
 const publicUser = (user) => ({
   id: user._id,
