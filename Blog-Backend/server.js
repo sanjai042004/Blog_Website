@@ -17,6 +17,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://codeverse-beta.vercel.app",
+      "my-portfolio-4vqlplbg1-sanjais-projects-6e86220c.vercel.app"
     ],
     credentials: true,
   })
