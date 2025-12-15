@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const multer = require("multer");
+// const multer = require("multer");
 const routes = require("./src/routes");
 
 const app = express();
@@ -16,8 +16,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://codeverse-b.netlify.app",
-      "https://6916383a956f210008c00fa7--codeverse-b.netlify.app",
+      "https://codeverse-beta.vercel.app",
     ],
     credentials: true,
   })
