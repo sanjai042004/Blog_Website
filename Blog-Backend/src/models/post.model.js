@@ -28,6 +28,7 @@ const blockSchema = new mongoose.Schema(
     },
     content: String,
     media: String,
+    public_id: String,
     youtubeEmbed: String,
   },
   { _id: false }
@@ -37,7 +38,7 @@ const postSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     subtitle: String,
-    blocks: [blockSchema],
+    blocks: [blockSchema], required:true,
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

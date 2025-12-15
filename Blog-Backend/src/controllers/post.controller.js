@@ -11,14 +11,13 @@ const findPost = async (postId, userId = null) => {
   return post;
 };
 
-// Parse blocks (files already uploaded via multer)
 const parseBlocks = (blocks, files) => {
   const parsed = typeof blocks === "string" ? JSON.parse(blocks) : blocks;
   let fileIndex = 0;
 
   return parsed.map((b) => {
     if (b.type === "image" && b.imageFile && files[fileIndex]) {
-      b.media = files[fileIndex].path; // Already Cloudinary URL
+      b.media = files[fileIndex].path; 
       b.public_id = files[fileIndex].filename || null;
       fileIndex++;
     }
@@ -67,7 +66,6 @@ const getPosts = async (req, res) => {
   }
 };
 
-// Get Single Post
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
@@ -84,7 +82,6 @@ const getPostById = async (req, res) => {
   }
 };
 
-// Update Post
 const updatePost = async (req, res) => {
   try {
     const post = await findPost(req.params.id, req.user.id);
@@ -102,7 +99,6 @@ const updatePost = async (req, res) => {
   }
 };
 
-// Delete Post
 const deletePost = async (req, res) => {
   try {
     await findPost(req.params.id, req.user.id);
@@ -113,7 +109,6 @@ const deletePost = async (req, res) => {
   }
 };
 
-// Add Comment / Reply
 const addComment = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -141,7 +136,6 @@ const addComment = async (req, res) => {
   }
 };
 
-// Delete Comment / Reply
 const deleteComment = async (req, res) => {
   try {
     const { postId, commentId, replyId } = req.params;
