@@ -4,17 +4,24 @@ const { clearCookies, publicUser } = require("../utils/auth");
 const bcrypt = require("bcrypt");
 
 const hashPassword = async (plain) => await bcrypt.hash(plain, 10);
-const comparePassword = async (plain, hashed) => await bcrypt.compare(plain, hashed);
+const comparePassword = async (plain, hashed) =>
+  await bcrypt.compare(plain, hashed);
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password -refreshTokens");
+    const user = await User.findById(req.user.id).select(
+      "-password -refreshTokens"
+    );
     if (!user)
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     res.json({ success: true, user: publicUser(user) });
   } catch {
-    res.status(500).json({ success: false, message: "Server error fetching profile" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching profile" });
   }
 };
 
@@ -22,7 +29,9 @@ const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user)
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const { name, bio } = req.body;
     if (name) user.name = name;
@@ -40,14 +49,18 @@ const updateProfile = async (req, res) => {
       user: publicUser(user),
     });
   } catch {
-    res.status(500).json({ success: false, message: "Server error updating profile" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error updating profile" });
   }
 };
 
 const getAuthorWithPosts = async (req, res) => {
   const { authorId } = req.params;
   if (!authorId)
-    return res.status(400).json({ success: false, message: "Invalid author ID" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid author ID" });
 
   try {
     const [user, posts] = await Promise.all([
@@ -61,11 +74,15 @@ const getAuthorWithPosts = async (req, res) => {
     ]);
 
     if (!user)
-      return res.status(404).json({ success: false, message: "Author not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Author not found" });
 
     res.json({ success: true, user, posts });
   } catch {
-    res.status(500).json({ success: false, message: "Server error fetching author" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching author" });
   }
 };
 
@@ -73,14 +90,18 @@ const deactivateAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     if (!user)
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     user.isDeactivated = true;
     await user.save();
     clearCookies(res);
     res.json({ success: true, message: "Account deactivated successfully" });
   } catch {
-    res.status(500).json({ success: false, message: "Error deactivating account" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error deactivating account" });
   }
 };
 
@@ -91,14 +112,19 @@ const reactivateAccount = async (req, res) => {
     if (!user || !user.isDeactivated)
       return res
         .status(400)
-        .json({ success: false, message: "Account not deactivated or not found" });
+        .json({
+          success: false,
+          message: "Account not deactivated or not found",
+        });
 
     user.isDeactivated = false;
     await user.save();
 
     res.json({ success: true, message: "Account reactivated successfully" });
   } catch {
-    res.status(500).json({ success: false, message: "Error reactivating account" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error reactivating account" });
   }
 };
 
@@ -135,7 +161,9 @@ const changePassword = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("+password");
     if (!user)
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const isMatch = await comparePassword(oldPassword, user.password);
     if (!isMatch)
@@ -148,7 +176,9 @@ const changePassword = async (req, res) => {
 
     res.json({ success: true, message: "Password updated successfully" });
   } catch {
-    res.status(500).json({ success: false, message: "Error changing password" });
+    res
+      .status(500)
+      .json({ success: false, message: "Error changing password" });
   }
 };
 

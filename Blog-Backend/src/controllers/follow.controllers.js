@@ -1,6 +1,5 @@
 const User = require("../models/user.model");
 
-// Follow a user
 const followUser = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -42,7 +41,6 @@ const followUser = async (req, res) => {
   }
 };
 
-// Unfollow a user
 const unFollowUser = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -77,7 +75,6 @@ const unFollowUser = async (req, res) => {
   }
 };
 
-// Get followers list
 const getFollowers = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate(
@@ -96,7 +93,6 @@ const getFollowers = async (req, res) => {
   }
 };
 
-//  Get following list
 const getFollowing = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate(
@@ -115,7 +111,6 @@ const getFollowing = async (req, res) => {
   }
 };
 
-//  Check follow status
 const followStatus = async (req, res) => {
   try {
     const userId = req.user._id;

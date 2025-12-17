@@ -7,7 +7,6 @@ const cookieOptions = {
   path: "/",
 };
 
-//  CREATE TOKENS
 const createTokens = (user) => {
   const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
@@ -22,7 +21,6 @@ const createTokens = (user) => {
   return { accessToken, refreshToken };
 };
 
-//  ATTACH COOKIE (REFRESH ONLY)
 
 const attachTokens = (res, refreshToken) => {
   res.cookie("refreshToken", refreshToken, {
@@ -31,12 +29,10 @@ const attachTokens = (res, refreshToken) => {
   });
 };
 
-//  CLEAR COOKIE
 const clearCookies = (res) => {
   res.clearCookie("refreshToken", cookieOptions);
 };
 
-//  PUBLIC USER
 const publicUser = (user) => ({
   id: user._id,
   name: user.name,

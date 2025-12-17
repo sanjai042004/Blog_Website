@@ -1,14 +1,16 @@
 const Post = require("../models/post.model");
 require("../models/user.model");
 
-// Helpers
 const handleError = (res, err, code = 500) =>
-  res.status(code).json({ success: false, message: err.message || "Server error" });
+  res
+    .status(code)
+    .json({ success: false, message: err.message || "Server error" });
 
 const findPost = async (postId, userId = null) => {
   const post = await Post.findById(postId);
   if (!post) throw new Error("Post not found");
-  if (userId && post.author.toString() !== userId) throw new Error("Not authorized");
+  if (userId && post.author.toString() !== userId)
+    throw new Error("Not authorized");
   return post;
 };
 
@@ -18,7 +20,7 @@ const parseBlocks = (blocks, files) => {
 
   return parsed.map((b) => {
     if (b.type === "image" && b.imageFile && files[fileIndex]) {
-      b.media = files[fileIndex].path; 
+      b.media = files[fileIndex].path;
       b.public_id = files[fileIndex].filename || null;
       fileIndex++;
     }
@@ -28,14 +30,22 @@ const parseBlocks = (blocks, files) => {
   });
 };
 
-// Create Post
 const createPost = async (req, res) => {
   try {
     const { title, blocks } = req.body;
-    if (!title?.trim()) return res.status(400).json({ success: false, message: "Title is required" });
+    if (!title?.trim())
+      return res
+        .status(400)
+        .json({ success: false, message: "Title is required" });
 
     const finalBlocks = parseBlocks(blocks, req.files || []);
-    if (!finalBlocks.length) return res.status(400).json({ success: false, message: "At least one content block is required" });
+    if (!finalBlocks.length)
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "At least one content block is required",
+        });
 
     const post = await Post.create({
       title,
@@ -51,7 +61,6 @@ const createPost = async (req, res) => {
   }
 };
 
-// Get All Posts
 const getPosts = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -74,7 +83,10 @@ const getPostById = async (req, res) => {
       .populate("comments.user", "name profileImage email")
       .populate("comments.replies.user", "name profileImage email");
 
-    if (!post) return res.status(404).json({ success: false, message: "Post not found" });
+    if (!post)
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
 
     post.comments.sort((a, b) => b.createdAt - a.createdAt);
     res.json({ success: true, post });
@@ -115,22 +127,32 @@ const addComment = async (req, res) => {
     const { id: postId } = req.params;
     const { text, parentId } = req.body;
 
-    if (!text?.trim()) return res.status(400).json({ success: false, message: "Comment cannot be empty" });
+    if (!text?.trim())
+      return res
+        .status(400)
+        .json({ success: false, message: "Comment cannot be empty" });
 
     const post = await findPost(postId);
 
     if (parentId) {
       const parentComment = post.comments.id(parentId);
-      if (!parentComment) return res.status(404).json({ success: false, message: "Parent comment not found" });
+      if (!parentComment)
+        return res
+          .status(404)
+          .json({ success: false, message: "Parent comment not found" });
       parentComment.replies.push({ user: req.user.id, text });
     } else {
       post.comments.push({ user: req.user.id, text });
     }
 
     await post.save();
-    await post.populate("comments.user", "name profileImage email").populate("comments.replies.user", "name profileImage email");
+    await post
+      .populate("comments.user", "name profileImage email")
+      .populate("comments.replies.user", "name profileImage email");
 
-    const comment = parentId ? post.comments.id(parentId).replies.at(-1) : post.comments.at(-1);
+    const comment = parentId
+      ? post.comments.id(parentId).replies.at(-1)
+      : post.comments.at(-1);
     res.json({ success: true, message: "Comment added", comment });
   } catch (err) {
     handleError(res, err);
@@ -143,15 +165,27 @@ const deleteComment = async (req, res) => {
     const post = await findPost(postId);
 
     const comment = post.comments.id(commentId);
-    if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
+    if (!comment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
 
     if (replyId) {
       const reply = comment.replies.id(replyId);
-      if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
-      if (reply.user.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
+      if (!reply)
+        return res
+          .status(404)
+          .json({ success: false, message: "Reply not found" });
+      if (reply.user.toString() !== req.user.id)
+        return res
+          .status(403)
+          .json({ success: false, message: "Not authorized" });
       reply.remove();
     } else {
-      if (comment.user.toString() !== req.user.id) return res.status(403).json({ success: false, message: "Not authorized" });
+      if (comment.user.toString() !== req.user.id)
+        return res
+          .status(403)
+          .json({ success: false, message: "Not authorized" });
       comment.remove();
     }
 
@@ -162,7 +196,6 @@ const deleteComment = async (req, res) => {
   }
 };
 
-// Claps
 const toggleClap = (array, userId) => {
   const index = array.findIndex((u) => u.toString() === userId);
   if (index > -1) array.splice(index, 1);
@@ -186,12 +219,18 @@ const clapComment = async (req, res) => {
     const { postId, commentId, replyId } = req.params;
     const post = await Post.findById(postId);
     const comment = post.comments.id(commentId);
-    if (!comment) return res.status(404).json({ success: false, message: "Comment not found" });
+    if (!comment)
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
 
     let action;
     if (replyId) {
       const reply = comment.replies.id(replyId);
-      if (!reply) return res.status(404).json({ success: false, message: "Reply not found" });
+      if (!reply)
+        return res
+          .status(404)
+          .json({ success: false, message: "Reply not found" });
       action = toggleClap(reply.claps, req.user.id);
     } else {
       action = toggleClap(comment.claps, req.user.id);

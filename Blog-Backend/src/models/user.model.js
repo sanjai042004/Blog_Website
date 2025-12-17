@@ -52,7 +52,6 @@ const userSchema = new mongoose.Schema(
     resetPasswordOTP: String,
     resetPasswordOTPExpire: Date,
     isDeactivated: { type: Boolean, default: false },
-
   },
   { timestamps: true }
 );

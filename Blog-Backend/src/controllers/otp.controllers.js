@@ -5,15 +5,13 @@ const bcrypt = require("bcrypt");
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, 
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-
-//Helper Send OTP email
 const sendOtpEmail = async (email, subject, otp) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
@@ -28,7 +26,6 @@ const sendOtpEmail = async (email, subject, otp) => {
   });
 };
 
-//Forgot Password Generate OTP
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -55,7 +52,6 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-//Verify OTP
 const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -78,7 +74,6 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-// Resend OTP
 const resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -104,7 +99,6 @@ const resendOtp = async (req, res) => {
   }
 };
 
-// Reset Password
 const resetPassword = async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
@@ -133,9 +127,7 @@ const resetPassword = async (req, res) => {
     res.status(200).json({ message: "Password reset successful!" });
   } catch (error) {
     console.error("Reset Password Error:", error.message);
-    res
-      .status(500)
-      .json({ message: "Server error while resetting password." });
+    res.status(500).json({ message: "Server error while resetting password." });
   }
 };
 
