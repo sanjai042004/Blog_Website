@@ -4,14 +4,15 @@ import { PostDetail } from "../pages/PostDetails";
 import { AuthorPage } from "../pages/AuthorPage";
 import { NotFound } from "../pages/NotFound";
 import { ProtectedRoute } from "./ProtectedRoute";
-import { RedirectIfAuth } from "./RedirectIfAuth";
-import { HomePageLayout, MainLayout, WriteLayout } from "../components/ui";
-import { LandingPage, Profile, ResetPassword } from "../pages/LandingPage";
+import { RedirectAuth } from "./RedirectAuth";
 import { Write } from "../pages/WritePage/Write";
+import { LandingPage, ResetPassword } from "../LandingPage";
+import { Profile } from "../pages/Profile";
+import { HomePageLayout, MainLayout, WriteLayout } from "../components/ui";
 
 export const Router = createBrowserRouter([
   {
-    element: <RedirectIfAuth />,
+    element: <RedirectAuth />,
     children: [
       {
         path: "/",
@@ -21,7 +22,7 @@ export const Router = createBrowserRouter([
     ],
   },
 
-  // Public home routes
+
   {
     path: "/home",
     element: <HomePageLayout />,

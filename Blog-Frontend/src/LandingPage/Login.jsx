@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
-import { Modal, Button, InputField } from "../../../components/ui";
+import { Modal, Button, InputField } from "../components/ui";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { ForgotPassword } from "./ForgotPassword";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 export const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
   const { login } = useAuth();

@@ -8,6 +8,10 @@ const routes = require("./src/routes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+
+console.log(mongoose.modelNames());
+
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(

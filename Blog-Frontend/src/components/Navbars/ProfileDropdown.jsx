@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
-import { useClickAway } from "react-use";
 import { useAuth } from "../../hooks/useAuth";
 import { UserProfile } from "../author/UserProfile";
 
@@ -9,12 +8,22 @@ export const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { user, logout } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const ref = useRef(null);
 
-  useEffect(() => setOpen(false), [location]);
-  useClickAway(ref, () => setOpen(false));
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -27,7 +36,7 @@ export const ProfileDropdown = () => {
   };
 
   return (
-    <div ref={ref} className="relative ml-6">
+    <div ref={dropdownRef} className="relative ml-6">
       <div className="cursor-pointer" onClick={() => setOpen(!open)}>
         <UserProfile user={user} />
       </div>

@@ -1,4 +1,5 @@
 const Post = require("../models/post.model");
+require("../models/user.model");
 
 // Helpers
 const handleError = (res, err, code = 500) =>

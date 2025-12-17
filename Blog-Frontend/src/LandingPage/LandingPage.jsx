@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import softwares from "../../assets/softwares.WebP";
+import softwares from "../assets/softwares.WebP";
 
 export const LandingPage = () => {
   const { onRegisterOpen } = useOutletContext();

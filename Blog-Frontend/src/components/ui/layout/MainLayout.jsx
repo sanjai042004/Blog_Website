@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { MainNav } from "../../Navbars/MainNav";
-import { Login, Register } from "../../../pages/LandingPage";
 import { Footer } from "./Footer";
+import { Login, Register } from "../../../LandingPage";
 
 export const MainLayout = () => {
   const [activeModal, setActiveModal] = useState(null);
@@ -31,7 +31,7 @@ export const MainLayout = () => {
 
       {activeModal === "register" && (
         <Register
-          isOpen
+          isOpen 
           onClose={closeModal}
           onSwitchToLogin={openLogin}
         />

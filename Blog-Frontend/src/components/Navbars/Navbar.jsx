@@ -3,11 +3,11 @@ import { SquarePen, Menu, Bell } from 'lucide-react';
 import { ProfileDropdown } from "./ProfileDropdown";
 
 
-export const Navbar = ({ toggleSidebar }) => {
+export const Navbar = ({ onMenuClick }) => {
   return (
     <nav className="flex items-center justify-between px-4 md:px-8 py-2 border-b border-gray-300 sticky top-0 bg-white z-50">
       <div className="flex items-center gap-2 text-2xl font-bold">
-        <button onClick={toggleSidebar} className="cursor-pointer">
+        <button onClick={onMenuClick} className="cursor-pointer">
           <Menu  />
         </button>
         <NavLink to="/home" className="text-black">

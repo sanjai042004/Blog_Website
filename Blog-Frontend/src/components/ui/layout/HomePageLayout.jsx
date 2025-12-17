@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../sidebars";
-import { Footer } from "./Footer";
 import { Navbar } from "../../Navbars/Navbar";
 
 export const HomePageLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={toggleSidebar} />
-
+      {/* Navbar */}
+      <Navbar onMenuClick={() => setSidebarOpen((v) => !v)} />
       <div className="flex flex-1">
         <Sidebar
           isOpen={sidebarOpen}
@@ -20,16 +18,18 @@ export const HomePageLayout = () => {
           `}
         />
 
+        {/* Main content */}
         <main
-          className={`flex-1 p-4 transition-all duration-300 ${
-            sidebarOpen ? "md:ml-64" : ""
-          }`}
+          className={`
+            flex-1 px-4 py-6
+            transition-all duration-300
+            ${sidebarOpen ? "ml-60" : "ml-0"}
+          `}
         >
           <Outlet />
         </main>
       </div>
 
-      <Footer />
     </div>
   );
 };

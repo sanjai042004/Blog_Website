@@ -14,7 +14,6 @@ export const AuthorInfo = ({
 
   return (
     <div className="flex items-center gap-2 mb-2 text-sm">
-      {/* Author avatar */}
       <UserProfile user={author} size="w-7 h-7 text-xs" onClick={onClick} />
 
       <div className="flex flex-col">
@@ -31,7 +30,6 @@ export const AuthorInfo = ({
         )}
       </div>
 
-      {/* Follow/Following button */}
       {toggleFollow && (
         <button
           className={`ml-auto px-2 py-1 text-xs font-medium rounded ${

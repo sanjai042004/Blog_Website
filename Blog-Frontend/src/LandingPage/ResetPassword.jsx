@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Button, InputField } from "../../../components/ui";
-import { otpService } from "../../../service/otpService";
+import { Button, InputField } from "../components/ui";
+import { otpService } from "../service/otpService";
 
 export const ResetPassword = () => {
   const navigate = useNavigate();

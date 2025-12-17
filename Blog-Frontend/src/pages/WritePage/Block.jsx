@@ -17,7 +17,6 @@ const BlockComponent = ({
 }) => {
   const fileInputRef = useRef();
 
-  // Focus the next block's textarea 
   const focusNext = useCallback(
     (nextIndex) => {
       if (nextIndex < 0) return;
@@ -28,7 +27,6 @@ const BlockComponent = ({
     [contentRefs]
   );
 
-  // Remove media (image, YouTube, or Unsplash) 
   const removeMedia = useCallback(
     (type) => {
       if (type === "image") {
@@ -46,7 +44,6 @@ const BlockComponent = ({
     [handleChange, index]
   );
 
-  // Handle image upload 
   const onFileChange = useCallback(
     (e) => {
       const file = e.target.files?.[0];
@@ -58,23 +55,19 @@ const BlockComponent = ({
     [handleFileChange, index]
   );
 
-  // Auto-resize the textarea as you type 
   const autoResize = useCallback((el) => {
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
   }, []);
 
-  // Press Enter = new block | Backspace = remove block 
 
   const handleKeyPress = useCallback(
     (e) => {
-      // Add new block on Enter (without Shift)
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         if (index === blocks.length - 1) addBlock();
         focusNext(index + 1);
       }
-      // Delete block on Backspace (if empty)
       if (e.key === "Backspace" && !block.content?.trim()) {
         e.preventDefault();
 

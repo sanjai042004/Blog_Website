@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+require("./user.model");
 
 const replySchema = new mongoose.Schema(
   {
@@ -38,7 +39,7 @@ const postSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     subtitle: String,
-    blocks: [blockSchema], required:true,
+    blocks: [blockSchema],
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

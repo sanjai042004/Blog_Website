@@ -29,12 +29,10 @@ export const Home = () => {
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-10 py-8">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 justify-center">
-
         {/* Post Section */}
         <div className="w-full lg:w-[900px]">
-           <h2 className="text-center text-2xl sm:text-3xl font-bold mb-4 sm:mb-8">
-           Latest Post
-          </h2>
+          <h1 className="text-center text-3xl font-bold mb-8">Latest Posts</h1>
+
           {posts.length > 0 ? (
             <div className="space-y-6 sm:space-y-10">
               {posts.map((post) => (
@@ -46,7 +44,6 @@ export const Home = () => {
           )}
         </div>
 
-        {/* Sidebar (hidden on mobile & tablet) */}
         <aside className="hidden xl:block w-full max-w-xs">
           <TopicsSidebar />
         </aside>

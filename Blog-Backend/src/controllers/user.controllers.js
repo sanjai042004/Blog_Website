@@ -3,11 +3,9 @@ const Post = require("../models/post.model");
 const { clearCookies, publicUser } = require("../utils/auth");
 const bcrypt = require("bcrypt");
 
-// Helper Functions
 const hashPassword = async (plain) => await bcrypt.hash(plain, 10);
 const comparePassword = async (plain, hashed) => await bcrypt.compare(plain, hashed);
 
-// Get Loggedin User Profile
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password -refreshTokens");
@@ -20,7 +18,6 @@ const getProfile = async (req, res) => {
   }
 };
 
-// Update Profile
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -47,7 +44,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// Get Author Info with Posts
 const getAuthorWithPosts = async (req, res) => {
   const { authorId } = req.params;
   if (!authorId)
@@ -73,7 +69,6 @@ const getAuthorWithPosts = async (req, res) => {
   }
 };
 
-// Deactivate Account
 const deactivateAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -89,7 +84,6 @@ const deactivateAccount = async (req, res) => {
   }
 };
 
-// Reactivate Account
 const reactivateAccount = async (req, res) => {
   const { email } = req.body;
   try {
@@ -108,7 +102,6 @@ const reactivateAccount = async (req, res) => {
   }
 };
 
-// Permanently Delete Account
 const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -125,7 +118,6 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-// Change Password
 const changePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
