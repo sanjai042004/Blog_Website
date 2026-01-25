@@ -3,7 +3,7 @@ import { Modal, Button, InputField } from "../components/ui";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { ForgotPassword } from "./ForgotPassword";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 
 export const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
   const { login } = useAuth();

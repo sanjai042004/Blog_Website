@@ -2,8 +2,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { api } from "../service/api";
 import {PostHeader,PostBlocks,PostActions,CommentSection,} from "../components/post";
-import { useAuth } from "../hooks/useAuth";
 import { useAuthor } from "../hooks/useAuthor";
+import { useAuth } from "../context/AuthContext";
 
 export const PostDetail = () => {
   const { id } = useParams();

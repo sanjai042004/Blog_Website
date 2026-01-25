@@ -2,8 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AuthorProfile } from "../components/author/AuthorProfile";
 import { Loading, ErrorMessage } from "../components/author/LoadingError";
 import { AuthorPosts } from "../components/author/AuthorPost";
-import { useAuth } from "../hooks/useAuth";
 import { useAuthor } from "../hooks/useAuthor";
+import { useAuth } from "../context/AuthContext";
 
 export const AuthorPage = () => {
   const { authorId } = useParams(); 

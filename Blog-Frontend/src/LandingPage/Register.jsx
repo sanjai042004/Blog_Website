@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, InputField, Modal } from "../components/ui";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 
 export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const { register } = useAuth();

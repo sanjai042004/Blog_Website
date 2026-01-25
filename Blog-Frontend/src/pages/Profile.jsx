@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ProfileSetting } from "./ProfileSetting";
 import { UserProfile } from "../components/author/UserProfile";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 
 export const Profile = () => {
   const { user, loading, error } = useAuth();

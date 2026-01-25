@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import { AuthLoader } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 
 export const RedirectAuth = () => {
   const { user, loading } = useAuth();

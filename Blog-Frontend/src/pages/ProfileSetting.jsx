@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
 import { UserProfile } from "../components/author/UserProfile";
-import { authService } from "../service/authService";
+import { useAuth } from "../context/AuthContext";
 
 export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
-  const { user, fetchProfile } = useAuth();
+  const { user, fetchProfile,updateProfile } = useAuth();
   const [file, setFile] = useState(null);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -31,29 +30,28 @@ export const ProfileSetting = ({ isOpen, onClose, preview, setPreview }) => {
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return alert("Name cannot be empty.");
-    setLoading(true);
+  if (!name.trim()) return alert("Name cannot be empty.");
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("bio", bio);
-      if (file) formData.append("profileImage", file);
+  try {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("bio", bio);
+    if (file) formData.append("profileImage", file);
 
-      const data = await authService.updateProfile(formData);
+    const res = await updateProfile(formData);
 
-      if (data.success) {
-        await fetchProfile();
-        onClose();
-      } else {
-        alert(data.message || "Failed to update profile.");
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to update profile.");
-    } finally {
-      setLoading(false);
+    if (res.success) {
+      onClose();
+    } else {
+      alert(res.message || "Failed to update profile");
     }
-  };
+  } catch (err) {
+    alert("Profile update failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div

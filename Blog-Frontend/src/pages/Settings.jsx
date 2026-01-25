@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, InputField } from "../components/ui";
-import { useAuth } from "../hooks/useAuth";
 import { api } from "../service/api";
+import { useAuth } from "../context/AuthContext";
 
 export const Settings = () => {
   const { user, updateProfile, logout } = useAuth();

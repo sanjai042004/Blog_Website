@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
 import { UserProfile } from "../author/UserProfile";
+import { useAuth } from "../../context/AuthContext";
 
 export const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);
