@@ -18,7 +18,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://codeverseb.netlify.app",
+      "https://codeverseb.vercel.app",
     ],
     credentials: true,
   })
