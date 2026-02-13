@@ -7,28 +7,40 @@ const userSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
+      index: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
+
     password: {
       type: String,
       minlength: 8,
       select: false,
     },
+
     googleId: {
       type: String,
       index: true,
       sparse: true,
     },
 
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      required: true,
+      default: "local",
+    },
+
     profileImage: {
       type: String,
       default: "",
     },
+
     bio: {
       type: String,
       trim: true,
@@ -39,19 +51,26 @@ const userSchema = new mongoose.Schema(
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    authProvider: {
-      type: String,
-      enum: ["local", "google"],
-      required: true,
-      default: "local",
-    },
     refreshTokens: {
       type: [String],
       default: [],
     },
-    resetPasswordOTP: String,
-    resetPasswordOTPExpire: Date,
-    isDeactivated: { type: Boolean, default: false },
+
+    // 🔐 RESET PASSWORD (SECURE)
+    resetPasswordOTP: {
+      type: String,
+      select: false,
+    },
+
+    resetPasswordOTPExpire: {
+      type: Date,
+      index: true,
+    },
+
+    isDeactivated: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

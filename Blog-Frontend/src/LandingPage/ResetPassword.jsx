@@ -6,40 +6,92 @@ import { otpService } from "../service/otpService";
 export const ResetPassword = () => {
   const navigate = useNavigate();
   const { search } = useLocation();
-  const queryParams = new URLSearchParams(search);
-  const email = queryParams.get("email");
-  const otp = queryParams.get("otp");
+  const params = new URLSearchParams(search);
 
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const email = params.get("email");
+  const otp = params.get("otp");
+
+  const [form, setForm] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({ type: "", text: "" });
 
   if (!email || !otp) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600 text-lg">Invalid or expired reset link.</p>
+        <p className="text-red-600 text-lg">
+          Invalid or expired reset link.
+        </p>
       </div>
     );
   }
 
+  const isStrongPassword = (password) =>
+    /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setForm((prev) => ({ ...prev, [id]: value }));
+    if (feedback.text) setFeedback({ type: "", text: "" });
+  };
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    const { newPassword, confirmPassword } = form;
 
-    if (!newPassword || !confirmPassword)
-      return setMessage("⚠️ Please fill all fields");
-    if (newPassword.length < 8)
-      return setMessage("⚠️ Password must be at least 8 characters");
-    if (newPassword !== confirmPassword)
-      return setMessage("⚠️ Passwords do not match");
+    if (!newPassword || !confirmPassword) {
+      return setFeedback({
+        type: "error",
+        text: "All fields are required.",
+      });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return setFeedback({
+        type: "error",
+        text:
+          "Password must be at least 8 characters, include 1 uppercase letter and 1 number.",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return setFeedback({
+        type: "error",
+        text: "Passwords do not match.",
+      });
+    }
 
     setLoading(true);
+
     try {
-      const res = await otpService.resetPassword(email, otp, newPassword);
-      setMessage(`✅ ${res.message}`);
-      setTimeout(() => navigate("/"), 1500);
+      const res = await otpService.resetPassword(
+        email,
+        otp,
+        newPassword
+      );
+
+      if (res && res.success === true) {
+        setFeedback({
+          type: "success",
+          text: res.message || "Password reset successful.",
+        });
+        navigate("/", { replace: true });
+      } else {
+        setFeedback({
+          type: "error",
+          text: res?.message || "Failed to reset password.",
+        });
+      }
     } catch (error) {
-      setMessage(error.message || "❌ Failed to reset password.");
+      setFeedback({
+        type: "error",
+        text:
+          error?.response?.data?.message ||
+          "Something went wrong. Try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -58,31 +110,39 @@ export const ResetPassword = () => {
             label="New Password"
             type="password"
             placeholder="Enter new password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            value={form.newPassword}
+            onChange={handleChange}
             showToggle
           />
+
           <InputField
             id="confirmPassword"
             label="Confirm Password"
             type="password"
             placeholder="Re-enter new password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            value={form.confirmPassword}
+            onChange={handleChange}
             showToggle
           />
 
-          <Button type="submit" loading={loading} className="w-full">
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={loading}
+            className="w-full"
+          >
             {loading ? "Resetting..." : "Reset Password"}
           </Button>
 
-          {message && (
+          {feedback.text && (
             <p
               className={`text-center text-sm mt-2 ${
-                message.startsWith("✅") ? "text-green-600" : "text-red-600"
+                feedback.type === "success"
+                  ? "text-green-600"
+                  : "text-red-600"
               }`}
             >
-              {message}
+              {feedback.text}
             </p>
           )}
         </form>

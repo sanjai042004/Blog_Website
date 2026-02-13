@@ -11,6 +11,9 @@ const {
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// ===============================
+// HELPERS
+// ===============================
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
@@ -20,26 +23,34 @@ const comparePassword = async (entered, hashed) => {
   return bcrypt.compare(entered, hashed);
 };
 
-//new user
+// ===============================
+// REGISTER
+// ===============================
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
 
-    if (!email || !password || !name)
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
 
-    if (password.length < 8)
-      return res
-        .status(400)
-        .json({ success: false, message: "Password too short" });
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already registered" });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
 
     const hashedPassword = await hashPassword(password);
 
@@ -51,7 +62,6 @@ const register = async (req, res) => {
     });
 
     const { accessToken, refreshToken } = createTokens(newUser);
-
     attachTokens(res, refreshToken);
 
     res.status(201).json({
@@ -59,12 +69,17 @@ const register = async (req, res) => {
       accessToken,
       user: publicUser(newUser),
     });
-  } catch (err) {
-    res.status(500).json({ success: false });
+  } catch {
+    res.status(500).json({
+      success: false,
+      message: "Server error during registration",
+    });
   }
 };
 
-//  Login user
+// ===============================
+// LOGIN
+// ===============================
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -72,10 +87,35 @@ const login = async (req, res) => {
     const user = await User.findOne({ email }).select(
       "+password +refreshTokens"
     );
-    if (!user) return res.status(401).json({ success: false });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (user.authProvider === "google") {
+      return res.status(400).json({
+        success: false,
+        message: "Please login using Google",
+      });
+    }
+
+    if (user.isDeactivated) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is deactivated",
+      });
+    }
 
     const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) return res.status(401).json({ success: false });
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
 
     const { accessToken, refreshToken } = createTokens(user);
 
@@ -90,28 +130,34 @@ const login = async (req, res) => {
       user: publicUser(user),
     });
   } catch {
-    res.status(500).json({ success: false });
+    res.status(500).json({
+      success: false,
+      message: "Server error during login",
+    });
   }
 };
 
-//  Google Login
+// ===============================
+// GOOGLE LOGIN
+// ===============================
 const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
 
     if (!token) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Google token is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Google token is required",
+      });
     }
 
-    // Verify Google token
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, sub: googleId, picture } = ticket.getPayload();
+    const { email, name, sub: googleId, picture } =
+      ticket.getPayload();
 
     let user = await User.findOne({ email }).select("+refreshTokens");
 
@@ -129,51 +175,63 @@ const googleLogin = async (req, res) => {
       await user.save();
     }
 
-    // Create tokens
+    if (user.isDeactivated) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is deactivated",
+      });
+    }
+
     const { accessToken, refreshToken } = createTokens(user);
 
-    // Save refresh token in DB
     user.refreshTokens = (user.refreshTokens || []).concat(refreshToken);
     await user.save();
 
-    // Attach ONLY refresh token as cookie
     attachTokens(res, refreshToken);
 
-    // Send access token in response
-    return res.status(200).json({
+    res.json({
       success: true,
-      message: "✔️ Google login successful!",
       accessToken,
       user: publicUser(user),
     });
-  } catch (err) {
-    console.error("Google Login Error:", err.message);
-    return res.status(500).json({
+  } catch {
+    res.status(500).json({
       success: false,
       message: "Server error during Google login",
     });
   }
 };
 
-//  Refresh Access Token
+// ===============================
+// REFRESH TOKEN
+// ===============================
 const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ success: false });
+    if (!token)
+      return res.status(401).json({ success: false });
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id).select("+refreshTokens");
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_REFRESH_SECRET
+    );
 
-    if (!user || !user.refreshTokens.includes(token))
+    const user = await User.findById(decoded.id).select(
+      "+refreshTokens"
+    );
+
+    if (!user || !user.refreshTokens.includes(token)) {
       return res.status(403).json({ success: false });
+    }
 
-    const { accessToken, refreshToken: newRefresh } = createTokens(user);
+    const { accessToken, refreshToken: newRefresh } =
+      createTokens(user);
 
     user.refreshTokens = user.refreshTokens
       .filter((t) => t !== token)
       .concat(newRefresh);
-    await user.save();
 
+    await user.save();
     attachTokens(res, newRefresh);
 
     res.json({
@@ -186,16 +244,24 @@ const refreshToken = async (req, res) => {
   }
 };
 
-//  Logout user
+// ===============================
+// LOGOUT
+// ===============================
 const logout = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_REFRESH_SECRET
+      );
+
       const user = await User.findById(decoded.id);
       if (user) {
-        user.refreshTokens = user.refreshTokens.filter((t) => t !== token);
+        user.refreshTokens = user.refreshTokens.filter(
+          (t) => t !== token
+        );
         await user.save();
       }
     }
@@ -208,6 +274,9 @@ const logout = async (req, res) => {
   }
 };
 
+// ===============================
+// EXPORTS
+// ===============================
 module.exports = {
   register,
   login,

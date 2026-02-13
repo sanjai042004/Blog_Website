@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button, InputField, Modal } from "../components/ui";
@@ -9,6 +9,8 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const from = location.state?.from?.pathname || "/home";
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -16,44 +18,42 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState(""); 
-
-  const nameRef = useRef(null);
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-
-  const from = location.state?.from?.pathname || "/home";
+  const [feedback, setFeedback] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setForm((prev) => ({ ...prev, [id]: value }));
-    if (message) {
-      setMessage("");
-      setStatus("");
-    }
+    if (feedback.text) setFeedback({ type: "", text: "" });
   };
 
-  const handleKeyDown = (e, nextRef) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      nextRef?.current?.focus();
-    }
-  };
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const isStrongPassword = (password) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const { name, email, password } = form;
 
     if (!name || !email || !password) {
-      setStatus("error");
-      return setMessage("All fields are required.");
+      return setFeedback({
+        type: "error",
+        text: "All fields are required.",
+      });
     }
 
-    if (password.length < 8) {
-      setStatus("error");
-      return setMessage("Password must be at least 8 characters long.");
+    if (!isValidEmail(email)) {
+      return setFeedback({
+        type: "error",
+        text: "Enter a valid email address.",
+      });
+    }
+
+    if (!isStrongPassword(password)) {
+      return setFeedback({
+        type: "error",
+        text:
+          "Password must be 8+ chars, include 1 uppercase and 1 number.",
+      });
     }
 
     setLoading(true);
@@ -61,24 +61,24 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
     try {
       const res = await register(form);
 
-      if (res?.success) {
-        setStatus("success");
-        setMessage(res.message || "Registration successful!");
-
-        setTimeout(() => {
-          navigate(from, { replace: true });
-          handleClose();
-        }, 1000);
+      if (res && res.success === true) {
+        setFeedback({
+          type: "success",
+          text: res.message || "Registration successful!",
+        });
+        navigate(from, { replace: true });
+        handleClose();
       } else {
-        setStatus("error");
-        setMessage(res?.message || "Registration failed.");
+        setFeedback({
+          type: "error",
+          text: res?.message || "Registration failed.",
+        });
       }
-    } catch (error) {
-      console.error("Registration error:", error);
-      setStatus("error");
-      setMessage(
-        error.response?.data?.message || "Registration failed."
-      );
+    } catch {
+      setFeedback({
+        type: "error",
+        text: "Something went wrong. Try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -86,8 +86,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
   const handleClose = () => {
     setForm({ name: "", email: "", password: "" });
-    setMessage("");
-    setStatus("");
+    setFeedback({ type: "", text: "" });
     onClose();
   };
 
@@ -100,8 +99,6 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
           value={form.name}
           onChange={handleChange}
           placeholder="Enter your name"
-          ref={nameRef}
-          onKeyDown={(e) => handleKeyDown(e, emailRef)}
         />
 
         <InputField
@@ -110,8 +107,6 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
           value={form.email}
           onChange={handleChange}
           placeholder="Enter your email"
-          ref={emailRef}
-          onKeyDown={(e) => handleKeyDown(e, passwordRef)}
         />
 
         <InputField
@@ -122,39 +117,38 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
           onChange={handleChange}
           placeholder="Enter your password"
           showToggle
-          ref={passwordRef}
         />
 
         <Button
           type="submit"
           loading={loading}
           disabled={loading}
-          className="w-full p-2 rounded-lg"
+          className="w-full"
         >
           {loading ? "Registering..." : "Register"}
         </Button>
 
-        {message && (
+        {feedback.text && (
           <p
             className={`text-center text-sm ${
-              status === "success"
+              feedback.type === "success"
                 ? "text-green-600"
                 : "text-red-600"
             }`}
           >
-            {message}
+            {feedback.text}
           </p>
         )}
 
-        <p className="text-center text-gray-600 text-sm">
+        <p className="text-center text-sm text-gray-600">
           Already have an account?{" "}
           <button
             type="button"
-            className="text-blue-600 hover:underline"
             onClick={() => {
               handleClose();
               onSwitchToLogin();
             }}
+            className="text-blue-600 hover:underline"
           >
             Login
           </button>
@@ -162,12 +156,12 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
 
         <div className="flex flex-col items-center mt-5">
           <div className="flex items-center w-full mb-3">
-            <div className="flex-grow border-t border-gray-300"></div>
+            <div className="flex-grow border-t border-gray-300" />
             <span className="mx-2 text-gray-500 text-sm">or</span>
-            <div className="flex-grow border-t border-gray-300"></div>
+            <div className="flex-grow border-t border-gray-300" />
           </div>
 
-          <GoogleLoginButton />
+          <GoogleLoginButton disabled={loading} />
         </div>
       </form>
     </Modal>

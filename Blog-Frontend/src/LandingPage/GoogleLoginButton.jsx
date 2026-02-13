@@ -1,20 +1,18 @@
 import { GoogleLogin } from "@react-oauth/google";
-import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
-export const GoogleLoginButton = () => {
+export const GoogleLoginButton = ({
+  onSuccessRedirect,
+  onError,
+  disabled = false,
+}) => {
   const { googleLogin } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const [loading, setLoading] = useState(false);
-
-  const from = location.state?.from?.pathname || "/home";
 
   const handleSuccess = async (response) => {
     if (!response?.credential) {
-      alert("Google authentication failed");
+      onError?.("Google authentication failed.");
       return;
     }
 
@@ -23,14 +21,16 @@ export const GoogleLoginButton = () => {
     try {
       const res = await googleLogin(response.credential);
 
-      if (res?.success) {
-        navigate(from, { replace: true });
+      if (res && res.success === true) {
+        onSuccessRedirect?.();
       } else {
-        alert(res?.message || "Google login failed");
+        onError?.(res?.message || "Google login failed.");
       }
-    } catch (error) {
-      console.error("Google Login Error:", error);
-      alert("Google Login Failed");
+    } catch (err) {
+      onError?.(
+        err?.response?.data?.message ||
+          "Google login failed."
+      );
     } finally {
       setLoading(false);
     }
@@ -38,19 +38,17 @@ export const GoogleLoginButton = () => {
 
   return (
     <div className="flex justify-center w-full mt-3">
-      <div className="w-full max-w-xs sm:max-w-sm flex justify-center">
-        <GoogleLogin
-          onSuccess={handleSuccess}
-          onError={() => alert("Google Login Failed")}
-          useOneTap={false}
-          size="large"
-          width="300"
-          shape="circle"
-          theme="outline"
-          text="signin_with"
-          disabled={loading}
-        />
-      </div>
+      <GoogleLogin
+        onSuccess={handleSuccess}
+        onError={() =>
+          onError?.("Google authentication failed.")
+        }
+        useOneTap={false}
+        size="large"
+        theme="outline"
+        text="signin_with"
+        disabled={disabled || loading}
+      />
     </div>
   );
 };

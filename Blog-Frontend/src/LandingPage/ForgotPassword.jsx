@@ -4,78 +4,159 @@ import { Button, InputField, Modal, OTPInput } from "../components/ui";
 import { otpService } from "../service/otpService";
 
 export const ForgotPassword = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(Array(6).fill(""));
-  const [step, setStep] = useState(1);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
 
-  // 🔹 Step 1: Send OTP
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [step, setStep] = useState(1); // 1 = email, 2 = otp
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({ type: "", text: "" });
+
+  // reset everything when modal closes
+  const resetState = () => {
+    setEmail("");
+    setOtp(Array(6).fill(""));
+    setStep(1);
+    setFeedback({ type: "", text: "" });
+    setLoading(false);
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  // =========================
+  // STEP 1 — SEND OTP
+  // =========================
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email.trim()) return setMessage("Please enter your email");
+
+    if (!email.trim()) {
+      return setFeedback({
+        type: "error",
+        text: "Email is required.",
+      });
+    }
+
+    if (!isValidEmail(email)) {
+      return setFeedback({
+        type: "error",
+        text: "Enter a valid email address.",
+      });
+    }
+
+    setLoading(true);
 
     try {
-      setLoading(true);
       const res = await otpService.forgotPassword(email);
-      setMessage(res.message || "OTP sent successfully!");
-      setStep(2);
+
+      // 🔴 THIS CHECK IS CRITICAL
+      if (res && res.success === true) {
+        setFeedback({
+          type: "success",
+          text: res.message || "OTP sent successfully.",
+        });
+        setStep(2); // ✅ THIS OPENS OTP INPUT
+      } else {
+        setFeedback({
+          type: "error",
+          text: res?.message || "Failed to send OTP.",
+        });
+      }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error sending OTP");
+      setFeedback({
+        type: "error",
+        text:
+          err?.response?.data?.message ||
+          "Failed to send OTP.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  // =========================
+  // STEP 2 — VERIFY OTP
+  // =========================
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+
     const code = otp.join("");
-    if (code.length !== 6)
-      return setMessage("Please enter the full 6-digit OTP");
+
+    if (!/^\d{6}$/.test(code)) {
+      return setFeedback({
+        type: "error",
+        text: "Enter a valid 6-digit OTP.",
+      });
+    }
+
+    setLoading(true);
 
     try {
-      setLoading(true);
       const res = await otpService.verifyOtp(email, code);
-      setMessage(res.message || "OTP verified successfully!");
 
-      // Redirect to reset password page
-      setTimeout(() => {
-        onClose();
+      if (res && res.success === true) {
+        handleClose();
         navigate(
-          `/reset-password?email=${encodeURIComponent(email)}&otp=${code}`
+          `/reset-password?email=${encodeURIComponent(
+            email
+          )}&otp=${code}`,
+          { replace: true }
         );
-      }, 1000);
+      } else {
+        setFeedback({
+          type: "error",
+          text: res?.message || "Invalid or expired OTP.",
+        });
+      }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Invalid or expired OTP");
+      setFeedback({
+        type: "error",
+        text:
+          err?.response?.data?.message ||
+          "Invalid or expired OTP.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  //  Resend OTP
+  // =========================
+  // RESEND OTP
+  // =========================
   const handleResendOtp = async () => {
-    if (!email.trim()) return setMessage("Email missing");
+    setLoading(true);
 
     try {
-      setLoading(true);
       const res = await otpService.resendOtp(email);
-      setMessage(res.message || "New OTP sent successfully!");
+      setFeedback({
+        type: "success",
+        text: res.message || "New OTP sent.",
+      });
       setOtp(Array(6).fill(""));
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error resending OTP");
+      setFeedback({
+        type: "error",
+        text:
+          err?.response?.data?.message ||
+          "Failed to resend OTP.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Forgot Password">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Forgot Password">
       <form
         onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp}
         className="space-y-4"
       >
+        {/* STEP 1 — EMAIL */}
         {step === 1 && (
           <InputField
             id="email"
@@ -83,10 +164,15 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
             type="email"
             placeholder="Enter your registered email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (feedback.text)
+                setFeedback({ type: "", text: "" });
+            }}
           />
         )}
 
+        {/* STEP 2 — OTP */}
         {step === 2 && (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 text-center">
@@ -95,12 +181,12 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
 
             <OTPInput otp={otp} setOtp={setOtp} />
 
-            <div className="text-center mt-2">
+            <div className="text-center">
               <button
                 type="button"
                 onClick={handleResendOtp}
-                className="text-blue-600 text-sm hover:underline cursor-pointer"
                 disabled={loading}
+                className="text-blue-600 text-sm hover:underline"
               >
                 Resend OTP
               </button>
@@ -108,19 +194,24 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        <Button type="submit" loading={loading} className="w-full">
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={loading}
+          className="w-full"
+        >
           {step === 1 ? "Send OTP" : "Verify OTP"}
         </Button>
 
-        {message && (
+        {feedback.text && (
           <p
             className={`text-center text-sm ${
-              message.toLowerCase().includes("success")
+              feedback.type === "success"
                 ? "text-green-600"
                 : "text-red-600"
             }`}
           >
-            {message}
+            {feedback.text}
           </p>
         )}
       </form>
