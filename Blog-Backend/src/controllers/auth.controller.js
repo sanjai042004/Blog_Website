@@ -11,9 +11,7 @@ const {
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// ===============================
 // HELPERS
-// ===============================
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
@@ -23,9 +21,7 @@ const comparePassword = async (entered, hashed) => {
   return bcrypt.compare(entered, hashed);
 };
 
-// ===============================
 // REGISTER
-// ===============================
 const register = async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -77,9 +73,7 @@ const register = async (req, res) => {
   }
 };
 
-// ===============================
 // LOGIN
-// ===============================
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -137,9 +131,7 @@ const login = async (req, res) => {
   }
 };
 
-// ===============================
 // GOOGLE LOGIN
-// ===============================
 const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -202,9 +194,7 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// ===============================
 // REFRESH TOKEN
-// ===============================
 const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
@@ -244,9 +234,7 @@ const refreshToken = async (req, res) => {
   }
 };
 
-// ===============================
 // LOGOUT
-// ===============================
 const logout = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
@@ -274,9 +262,7 @@ const logout = async (req, res) => {
   }
 };
 
-// ===============================
 // EXPORTS
-// ===============================
 module.exports = {
   register,
   login,

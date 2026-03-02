@@ -8,11 +8,10 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
 
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(Array(6).fill(""));
-  const [step, setStep] = useState(1); // 1 = email, 2 = otp
+  const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: "", text: "" });
 
-  // reset everything when modal closes
   const resetState = () => {
     setEmail("");
     setOtp(Array(6).fill(""));
@@ -29,9 +28,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // =========================
-  // STEP 1 — SEND OTP
-  // =========================
+  // step 1 send
   const handleSendOtp = async (e) => {
     e.preventDefault();
 
@@ -54,13 +51,12 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
     try {
       const res = await otpService.forgotPassword(email);
 
-      // 🔴 THIS CHECK IS CRITICAL
       if (res && res.success === true) {
         setFeedback({
           type: "success",
           text: res.message || "OTP sent successfully.",
         });
-        setStep(2); // ✅ THIS OPENS OTP INPUT
+        setStep(2);
       } else {
         setFeedback({
           type: "error",
@@ -79,9 +75,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
     }
   };
 
-  // =========================
-  // STEP 2 — VERIFY OTP
-  // =========================
+  // step 2 verify otp
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
 
@@ -125,9 +119,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
     }
   };
 
-  // =========================
-  // RESEND OTP
-  // =========================
+  // resend otp
   const handleResendOtp = async () => {
     setLoading(true);
 
@@ -156,7 +148,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
         onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp}
         className="space-y-4"
       >
-        {/* STEP 1 — EMAIL */}
+        {/* step 1 email  */}
         {step === 1 && (
           <InputField
             id="email"
@@ -172,7 +164,7 @@ export const ForgotPassword = ({ isOpen, onClose }) => {
           />
         )}
 
-        {/* STEP 2 — OTP */}
+        {/* step 2 — otp */}
         {step === 2 && (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 text-center">

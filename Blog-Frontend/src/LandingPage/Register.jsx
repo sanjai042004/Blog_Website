@@ -148,7 +148,7 @@ export const Register = ({ isOpen, onClose, onSwitchToLogin }) => {
               handleClose();
               onSwitchToLogin();
             }}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 hover:underline cursor-pointer"
           >
             Login
           </button>

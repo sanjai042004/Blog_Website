@@ -106,7 +106,7 @@ export const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
           <button
             type="button"
             onClick={() => setShowForgotPassword(true)}
-            className="text-blue-600 text-sm hover:underline"
+            className="text-blue-600 text-sm hover:underline cursor-pointer"
           >
             Forgot password?
           </button>
@@ -141,7 +141,7 @@ export const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
               handleClose();
               onSwitchToRegister();
             }}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 hover:underline cursor-pointer"
           >
             Register
           </button>

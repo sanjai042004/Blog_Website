@@ -2,29 +2,32 @@ import { Link } from "react-router-dom";
 import { calculateReadTime } from "../../utilis/calculateReadTime";
 import { formatDate } from "../../utilis/utilis";
 import { UserProfile } from "../author/UserProfile";
+import { FollowButton } from "../follow/FollowButton";
 
 export const PostHeader = ({
   post,
   currentUser,
   isFollowing,
   toggleFollow,
+  followLoading,
 }) => {
   if (!post) return null;
 
-  const { author, title, blocks, createdAt } = post;
-  const authorName = author?.name || "Unknown";
-
-  const canFollow = currentUser && author && currentUser._id !== author._id;
+  const { author, title, blocks = [], createdAt } = post;
 
   const readTime = calculateReadTime(
-    Array.isArray(blocks) ? blocks.map((b) => b.content).join(" ") : ""
+    blocks.map((b) => b.content || "").join(" ")
   );
 
   const date = formatDate(createdAt);
 
+  const isOwnPost =
+    currentUser && author && currentUser._id === author._id;
+    console.log("toggleFollow:", toggleFollow);
+
   return (
     <div className="mb-10">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-15 break-words">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-8 break-words">
         {title}
       </h1>
 
@@ -35,18 +38,19 @@ export const PostHeader = ({
           </Link>
 
           <div className="flex items-center gap-2">
-            <p className="font-semibold">{authorName}</p>
+            <p className="font-semibold">
+              {author?.name || "Unknown"}
+            </p>
 
-            {canFollow && (
-              <button
-                onClick={toggleFollow}
-                className="text-sm border py-1 px-3 border-gray-400 rounded-full cursor-pointer"
-              >
-                {isFollowing ? "Following" : "Follow"}
-              </button>
+            {!isOwnPost && toggleFollow && (
+              <FollowButton
+                isFollowing={isFollowing}
+                onToggle={toggleFollow}
+                loading={followLoading}
+              />
             )}
 
-            {currentUser && author && currentUser._id === author._id && (
+            {isOwnPost && (
               <span className="text-gray-500 text-xs border px-2 py-1 rounded-full">
                 You
               </span>
@@ -55,7 +59,7 @@ export const PostHeader = ({
         </div>
 
         <p className="font-light text-xs text-gray-500">
-          {readTime}  {date}
+          {readTime} • {date}
         </p>
       </div>
     </div>

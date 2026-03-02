@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("authUser");
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -18,14 +18,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem("authUser", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem("authUser");
+      localStorage.removeItem("user");
     }
   }, [user]);
 
-  const register = async (formData) => {
-    const data = await authService.register(formData);
+  const register = async (d) => {
+    const data = await authService.register(d);
 
     if (data.success && data.user) {
       localStorage.setItem("accessToken", data.accessToken);
@@ -38,8 +38,8 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const login = async (formData) => {
-    const data = await authService.login(formData);
+  const login = async (d) => {
+    const data = await authService.login(d);
 
     if (data.success && data.user) {
       localStorage.setItem("accessToken", data.accessToken);
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     } catch {}
 
     setUser(null);
-    localStorage.removeItem("authUser");
+    localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
   };
 

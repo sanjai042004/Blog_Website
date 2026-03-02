@@ -1,17 +1,27 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { Heart, MessageCircle, Share } from "lucide-react";
 import { AuthorInfo } from "./AuthorInfo";
 import { getPostImage, getPreviewText } from "../../utilis/postUtilis";
+import { formatDate } from "../../utilis/utilis";
 
 export const PostCard = ({ post, hideAuthor = false }) => {
   const navigate = useNavigate();
   const BACKEND_URL = import.meta.env.VITE_API_URL;
-  const author = post.author || {};
+
+  const author = post?.author || {};
 
   const goToAuthor = (e) => {
     e.stopPropagation();
-    if (author._id) navigate(`/home/author/${author._id}`);
+    if (author?._id) {
+      navigate(`/home/author/${author._id}`);
+    }
+  };
+
+  const goToPost = () => {
+    if (post?._id) {
+      navigate(`/home/post/${post._id}`);
+    }
   };
 
   const postImage = useMemo(
@@ -20,28 +30,48 @@ export const PostCard = ({ post, hideAuthor = false }) => {
   );
 
   const previewText = useMemo(() => getPreviewText(post), [post]);
-  const formattedDate = post.createdAt
-    ? new Date(post.createdAt).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+
+  const formattedDate = post?.createdAt
+    ? formatDate(post.createdAt)
     : "Unknown date";
+
+  const handleShare = (e) => {
+    e.stopPropagation();
+
+    if (navigator.share) {
+      navigator.share({
+        title: post.title,
+        text: previewText,
+        url: `${window.location.origin}/home/post/${post._id}`,
+      });
+    } else {
+      navigator.clipboard.writeText(
+        `${window.location.origin}/home/post/${post._id}`
+      );
+      console.log("Post link copied");
+    }
+  };
 
   return (
     <div
-      onClick={() => navigate(`/home/post/${post._id}`)}
-      className="cursor-pointer w-full max-w-2xl mx-auto py-6 px-4 border-b border-gray-200 transition"
+      onClick={goToPost}
+      className="cursor-pointer w-full max-w-2xl mx-auto py-6 px-4 border-b border-gray-200 transition "
     >
       {!hideAuthor && (
-        <AuthorInfo author={author} onClick={goToAuthor} showDate />
+        <AuthorInfo
+          author={author}
+          onClick={goToAuthor}
+          showDate
+          date={post?.createdAt}
+        />
       )}
 
       <div className="flex gap-4">
         <div className="flex-1">
           <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">
-            {post.title || "Untitled Post"}
+            {post?.title || "Untitled Post"}
           </h2>
+
           <p className="text-gray-700 mt-1 line-clamp-3 text-sm">
             {previewText}
           </p>
@@ -50,8 +80,8 @@ export const PostCard = ({ post, hideAuthor = false }) => {
         {postImage && (
           <img
             src={postImage}
-            alt={post.title || "Post image"}
-            className="w-24 h-20     sm:w-32 sm:h-28md:w-40 md:h-32 object-cover rounded flex-shrink-0"
+            alt={post?.title || "Post image"}
+            className="w-24 h-20 sm:w-32 sm:h-28 md:w-40 md:h-32 object-cover rounded flex-shrink-0"
             loading="lazy"
           />
         )}
@@ -60,19 +90,20 @@ export const PostCard = ({ post, hideAuthor = false }) => {
       <div className="flex justify-between items-center text-sm text-gray-500 mt-4">
         <div className="flex items-center gap-4">
           <span>{formattedDate}</span>
+
           <span className="flex items-center gap-1">
-            <Heart size={16} /> {post.likes || 0}
+            <Heart size={16} />
+            {post?.likes || 0}
           </span>
+
           <span className="flex items-center gap-1">
-            <MessageCircle size={16} /> {post.comments?.length || 0}
+            <MessageCircle size={16} />
+            {post?.comments?.length || 0}
           </span>
         </div>
 
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("Share post:", post._id);
-          }}
+          onClick={handleShare}
           className="hover:text-gray-700"
         >
           <Share size={16} />

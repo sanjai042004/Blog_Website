@@ -32,4 +32,8 @@ export const authService = {
     });
     return data;
   },
+  getAuthorById: async (authorId) => {
+    const { data } = await api.get(`/users/author/${authorId}`);
+    return data;
+  },
 };

@@ -1,12 +1,7 @@
 const mongoose = require("mongoose");
-
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      trim: true,
-      required: true,
-    },
+    name: { type: String, trim: true, required: true },
 
     email: {
       type: String,
@@ -36,43 +31,16 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
 
-    profileImage: {
-      type: String,
-      default: "",
-    },
+    profileImage: { type: String, default: "" },
+    bio: { type: String, trim: true, maxlength: 300, default: "" },
 
-    bio: {
-      type: String,
-      trim: true,
-      maxlength: 300,
-      default: "",
-    },
+    refreshTokens: { type: [String], default: [] },
 
-    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    resetPasswordOTP: { type: String, select: false },
+    resetPasswordOTPExpire: { type: Date, index: true },
 
-    refreshTokens: {
-      type: [String],
-      default: [],
-    },
-
-    // 🔐 RESET PASSWORD (SECURE)
-    resetPasswordOTP: {
-      type: String,
-      select: false,
-    },
-
-    resetPasswordOTPExpire: {
-      type: Date,
-      index: true,
-    },
-
-    isDeactivated: {
-      type: Boolean,
-      default: false,
-    },
+    isDeactivated: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
 module.exports = mongoose.model("User", userSchema);

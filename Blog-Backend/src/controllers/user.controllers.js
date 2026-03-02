@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 const Post = require("../models/post.model");
 const { clearCookies, publicUser } = require("../utils/auth");
 const bcrypt = require("bcrypt");
+const Follow = require("../models/follow.model");
 
 const hashPassword = async (plain) => await bcrypt.hash(plain, 10);
 const comparePassword = async (plain, hashed) =>
@@ -10,7 +11,7 @@ const comparePassword = async (plain, hashed) =>
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
-      "-password -refreshTokens"
+      "-password -refreshTokens",
     );
     if (!user)
       return res
@@ -57,20 +58,21 @@ const updateProfile = async (req, res) => {
 
 const getAuthorWithPosts = async (req, res) => {
   const { authorId } = req.params;
+
   if (!authorId)
     return res
       .status(400)
       .json({ success: false, message: "Invalid author ID" });
 
   try {
-    const [user, posts] = await Promise.all([
-      User.findById(authorId)
-        .select("-password -refreshTokens")
-        .populate("followers", "name profileImage")
-        .populate("following", "name profileImage"),
+    const [user, posts, followersCount] = await Promise.all([
+      User.findById(authorId).select("-password -refreshTokens"),
+
       Post.find({ author: authorId })
         .populate("author", "name profileImage")
         .sort({ createdAt: -1 }),
+
+      Follow.countDocuments({ following: authorId }),
     ]);
 
     if (!user)
@@ -78,14 +80,20 @@ const getAuthorWithPosts = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Author not found" });
 
-    res.json({ success: true, user, posts });
-  } catch {
-    res
-      .status(500)
-      .json({ success: false, message: "Server error fetching author" });
+    res.json({
+      success: true,
+      user,
+      posts,
+      followersCount,
+    });
+  } catch (err) {
+    console.error("GetAuthor Error:", err.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching author",
+    });
   }
 };
-
 const deactivateAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -110,12 +118,10 @@ const reactivateAccount = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user || !user.isDeactivated)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Account not deactivated or not found",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Account not deactivated or not found",
+      });
 
     user.isDeactivated = false;
     await user.save();

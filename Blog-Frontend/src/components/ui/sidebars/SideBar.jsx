@@ -17,14 +17,9 @@ export const Sidebar = ({ isOpen }) => {
         bg-white shadow-lg
         transition-all duration-300
         overflow-hidden
-
-        /* width */
         ${isOpen ? "w-60" : "w-0"}
 
-        /* mobile slide */
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
-
-        /* desktop */
         md:translate-x-0
       `}
     >

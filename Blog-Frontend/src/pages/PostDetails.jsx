@@ -1,9 +1,15 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "../service/api";
-import {PostHeader,PostBlocks,PostActions,CommentSection,} from "../components/post";
+import {
+  PostHeader,
+  PostBlocks,
+  PostActions,
+  CommentSection,
+} from "../components/post";
 import { useAuthor } from "../hooks/useAuthor";
 import { useAuth } from "../context/AuthContext";
+import { useFollow } from "../hooks/useFollow";
 
 export const PostDetail = () => {
   const { id } = useParams();
@@ -17,16 +23,29 @@ export const PostDetail = () => {
   const [clapCount, setClapCount] = useState(0);
   const [userClapped, setUserClapped] = useState(false);
 
+  // 🔹 Fetch Post
   useEffect(() => {
     const fetchPost = async () => {
-      try {
-        const res = await api.get(`/posts/${id}`);
-        const data = res.data.post;
+      setLoading(true);
+      setError("");
 
-        setPost(data);
-        setComments(data.comments || []);
-        setClapCount(data.claps?.length || 0);
-        setUserClapped(data.claps?.some((c) => c.user === currentUser?._id));
+      try {
+        const { data } = await api.get(`/posts/${id}`);
+        const postData = data.post;
+
+        setPost(postData);
+        setComments(postData.comments || []);
+        setClapCount(postData.claps?.length || 0);
+
+        if (currentUser?._id) {
+          setUserClapped(
+            postData.claps?.some(
+              (c) => c.user?.toString() === currentUser._id.toString()
+            )
+          );
+        } else {
+          setUserClapped(false);
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Failed to load post");
       } finally {
@@ -35,39 +54,64 @@ export const PostDetail = () => {
     };
 
     fetchPost();
-  }, [id, currentUser]);
+  }, [id]);
 
+  // 🔹 Clap Logic
   const handleClap = async () => {
-    if (!currentUser) return navigate("/login");
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
 
     try {
-      const res = await api.post(`/posts/${id}/clap`);
-      setClapCount(res.data.totalClaps);
-      setUserClapped(res.data.action === "added");
-    } catch {
-      alert("Failed to clap the post");
+      const { data } = await api.post(`/posts/${id}/clap`);
+      setClapCount(data.totalClaps);
+      setUserClapped(data.action === "added");
+    } catch (err) {
+      console.error(err.response?.data?.message || "Failed to clap");
     }
   };
 
-  const { author, isFollowing, toggleFollow } = useAuthor(
-    post?.author?._id,
-    currentUser,
-    post?.author
-  );
+  // 🔹 Author Data (only fetch profile info)
+  const { author } = useAuthor(post?.author?._id);
 
-  if (loading) return <p className="text-center py-20">Loading post...</p>;
-  if (error) return <p className="text-center py-20 text-red-500">{error}</p>;
+  // 🔹 Follow Logic (separate hook)
+  const {
+    isFollowing,
+    toggleFollow,
+    loading: followLoading,
+  } = useFollow(post?.author?._id, currentUser);
+
+  // 🔹 Can Follow?
+  const canFollow = useMemo(() => {
+    if (!currentUser || !author) return false;
+    return currentUser._id !== author._id;
+  }, [currentUser, author]);
+
+  if (loading) {
+    return <p className="text-center py-20">Loading post...</p>;
+  }
+
+  if (error) {
+    return (
+      <p className="text-center py-20 text-red-500">
+        {error}
+      </p>
+    );
+  }
+
+  if (!post) {
+    return <p className="text-center py-20">Post not found</p>;
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-4 mt-25">
-
       <PostHeader
         post={{ ...post, author }}
         currentUser={currentUser}
         isFollowing={isFollowing}
-        toggleFollow={
-          currentUser?._id !== author?._id ? toggleFollow : undefined
-        }
+        toggleFollow={canFollow ? toggleFollow : undefined}
+        followLoading={followLoading}
       />
 
       <PostActions

@@ -1,12 +1,15 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://blog-website-zwu2.onrender.com/api",
+  // baseURL: "https://blog-website-zwu2.onrender.com/api",
+    baseURL: "http://localhost:5000/api",
+
   withCredentials: true,
 });
 
 export const refreshApi = axios.create({
-  baseURL: "https://blog-website-zwu2.onrender.com/api",
+  baseURL: "http://localhost:5000/api",
+  // baseURL: "https://blog-website-zwu2.onrender.com/api",
   withCredentials: true,
 });
 
