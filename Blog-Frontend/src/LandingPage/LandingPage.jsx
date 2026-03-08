@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import softwares from "../assets/softwares.webp";
+import softwares from "../assets/Softwares.webp";
 
 export const LandingPage = () => {
   const outletContext = useOutletContext();
