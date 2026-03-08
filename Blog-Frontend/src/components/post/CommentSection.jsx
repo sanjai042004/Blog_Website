@@ -43,7 +43,6 @@ export const CommentSection = ({ postId, comments, setComments, currentUser, nav
 
   return (
     <div className="mt-10">
-      {/* Current User Info */}
       {currentUser ? (
         <div className="flex items-center gap-3 mb-6">
           <Link to={`/author/${currentUser._id}`}>
