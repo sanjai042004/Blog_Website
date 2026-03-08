@@ -6,7 +6,6 @@ export const LandingPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-[80vh] justify-center items-center gap-12 px-6">
-      {/* TEXT SECTION */}
       <section className="w-full max-w-xl text-center">
         <h1 className="font-serif font-medium text-gray-900 text-5xl sm:text-6xl md:text-7xl leading-tight">
           Human stories <span className="block">& ideas</span>
@@ -26,7 +25,6 @@ export const LandingPage = () => {
         </button>
       </section>
 
-      {/* IMAGE */}
       <img
         src="/Softwares.WebP"
         loading="lazy"
