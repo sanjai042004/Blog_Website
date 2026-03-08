@@ -1,5 +1,4 @@
 import { useOutletContext } from "react-router-dom";
-import softwares from "../assets/Softwares.webp";
 
 export const LandingPage = () => {
   const outletContext = useOutletContext();
@@ -29,7 +28,7 @@ export const LandingPage = () => {
 
       {/* IMAGE */}
       <img
-        src={softwares}
+        src="/Softwares.WebP"
         loading="lazy"
         alt="Illustration representing software and ideas"
         className="hidden md:block w-full max-w-md"
