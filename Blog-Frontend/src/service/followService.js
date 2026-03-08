@@ -24,7 +24,7 @@ export const followService = {
   getFollowers: async (userId, page = 1, limit = 10) => {
     const { data } = await api.get(
       `/follow/${userId}/followers?page=${page}&limit=${limit}`
-    );
+    )
     return data;
   },
 
