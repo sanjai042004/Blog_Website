@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { OAuth2Client } = require("google-auth-library");
+
 const {
   createTokens,
   attachTokens,
@@ -11,20 +12,17 @@ const {
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// HELPERS
 const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
+  return bcrypt.hash(password, 10);
 };
 
 const comparePassword = async (entered, hashed) => {
   return bcrypt.compare(entered, hashed);
 };
 
-// REGISTER
 const register = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    let { email, password, name } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({
@@ -32,6 +30,9 @@ const register = async (req, res) => {
         message: "All fields are required",
       });
     }
+
+    email = email.trim().toLowerCase();
+    name = name.trim();
 
     if (password.length < 8) {
       return res.status(400).json({
@@ -41,6 +42,7 @@ const register = async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -51,13 +53,18 @@ const register = async (req, res) => {
     const hashedPassword = await hashPassword(password);
 
     const newUser = await User.create({
-      name: name.trim(),
-      email: email.trim(),
+      name,
+      email,
       password: hashedPassword,
       authProvider: "local",
+      refreshTokens: [],
     });
 
     const { accessToken, refreshToken } = createTokens(newUser);
+
+    newUser.refreshTokens.push(refreshToken);
+    await newUser.save();
+
     attachTokens(res, refreshToken);
 
     res.status(201).json({
@@ -65,7 +72,9 @@ const register = async (req, res) => {
       accessToken,
       user: publicUser(newUser),
     });
-  } catch {
+  } catch (error) {
+    console.error("Register Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Server error during registration",
@@ -73,13 +82,14 @@ const register = async (req, res) => {
   }
 };
 
-// LOGIN
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email.trim().toLowerCase();
 
     const user = await User.findOne({ email }).select(
-      "+password +refreshTokens"
+      "+password +refreshTokens",
     );
 
     if (!user) {
@@ -104,6 +114,7 @@ const login = async (req, res) => {
     }
 
     const isMatch = await comparePassword(password, user.password);
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -113,7 +124,7 @@ const login = async (req, res) => {
 
     const { accessToken, refreshToken } = createTokens(user);
 
-    user.refreshTokens = (user.refreshTokens || []).concat(refreshToken);
+    user.refreshTokens.push(refreshToken);
     await user.save();
 
     attachTokens(res, refreshToken);
@@ -123,7 +134,9 @@ const login = async (req, res) => {
       accessToken,
       user: publicUser(user),
     });
-  } catch {
+  } catch (error) {
+    console.error("Login Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Server error during login",
@@ -131,7 +144,6 @@ const login = async (req, res) => {
   }
 };
 
-// GOOGLE LOGIN
 const googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -148,23 +160,30 @@ const googleLogin = async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    const { email, name, sub: googleId, picture } =
-      ticket.getPayload();
+    const { email, name, sub: googleId, picture } = ticket.getPayload();
 
-    let user = await User.findOne({ email }).select("+refreshTokens");
+    const normalizedEmail = email.toLowerCase();
 
-    if (!user) {
+    let user = await User.findOne({ email: normalizedEmail }).select(
+      "+refreshTokens",
+    );
+
+    if (user) {
+      if (user.authProvider === "local") {
+        return res.status(400).json({
+          success: false,
+          message: "Account exists with email/password login",
+        });
+      }
+    } else {
       user = await User.create({
         name,
-        email,
+        email: normalizedEmail,
         googleId,
         authProvider: "google",
         profileImage: picture || "",
+        refreshTokens: [],
       });
-    } else if (!user.googleId) {
-      user.googleId = googleId;
-      user.authProvider = "google";
-      await user.save();
     }
 
     if (user.isDeactivated) {
@@ -176,7 +195,7 @@ const googleLogin = async (req, res) => {
 
     const { accessToken, refreshToken } = createTokens(user);
 
-    user.refreshTokens = (user.refreshTokens || []).concat(refreshToken);
+    user.refreshTokens.push(refreshToken);
     await user.save();
 
     attachTokens(res, refreshToken);
@@ -186,7 +205,9 @@ const googleLogin = async (req, res) => {
       accessToken,
       user: publicUser(user),
     });
-  } catch {
+  } catch (error) {
+    console.error("Google Login Error:", error);
+
     res.status(500).json({
       success: false,
       message: "Server error during Google login",
@@ -194,34 +215,59 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// REFRESH TOKEN
+const logout = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+        const user = await User.findById(decoded.id).select("+refreshTokens");
+
+        if (user) {
+          user.refreshTokens = user.refreshTokens.filter((t) => t !== token);
+
+          await user.save();
+        }
+      } catch (err) {}
+    }
+
+    clearCookies(res);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Logout Error:", error);
+
+    clearCookies(res);
+    res.json({ success: true });
+  }
+};
+
 const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token)
+
+    if (!token) {
       return res.status(401).json({ success: false });
+    }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_REFRESH_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-    const user = await User.findById(decoded.id).select(
-      "+refreshTokens"
-    );
+    const user = await User.findById(decoded.id).select("+refreshTokens");
 
     if (!user || !user.refreshTokens.includes(token)) {
       return res.status(403).json({ success: false });
     }
 
-    const { accessToken, refreshToken: newRefresh } =
-      createTokens(user);
+    const { accessToken, refreshToken: newRefresh } = createTokens(user);
 
     user.refreshTokens = user.refreshTokens
       .filter((t) => t !== token)
       .concat(newRefresh);
 
     await user.save();
+
     attachTokens(res, newRefresh);
 
     res.json({
@@ -229,40 +275,13 @@ const refreshToken = async (req, res) => {
       accessToken,
       user: publicUser(user),
     });
-  } catch {
+  } catch (error) {
+    console.error("Refresh Token Error:", error);
+
     res.status(401).json({ success: false });
   }
 };
 
-// LOGOUT
-const logout = async (req, res) => {
-  try {
-    const token = req.cookies.refreshToken;
-
-    if (token) {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_REFRESH_SECRET
-      );
-
-      const user = await User.findById(decoded.id);
-      if (user) {
-        user.refreshTokens = user.refreshTokens.filter(
-          (t) => t !== token
-        );
-        await user.save();
-      }
-    }
-
-    clearCookies(res);
-    res.json({ success: true });
-  } catch {
-    clearCookies(res);
-    res.json({ success: true });
-  }
-};
-
-// EXPORTS
 module.exports = {
   register,
   login,
