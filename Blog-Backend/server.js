@@ -18,7 +18,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://codeverseb.vercel.app",
+      "https://codeverse-c.vercel.app",
     ],
     credentials: true,
   })
